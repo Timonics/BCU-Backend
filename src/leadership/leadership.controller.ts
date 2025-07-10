@@ -12,7 +12,7 @@ import { LeadershipPosition } from 'src/entity/leadership.entity';
 
 @ApiTags('Leadership')
 @ApiBearerAuth('access-token')
-@Controller(`${process.env.API}leadership`)
+@Controller("leadership")
 export class LeadershpController {
   constructor(private readonly leadersipService: LeadershipService) {}
 

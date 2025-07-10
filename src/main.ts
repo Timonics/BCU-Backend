@@ -6,6 +6,9 @@ import { ResponseInterceptor } from "./common/interceptors/reponse.interceptor";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import * as express from "express";
 import { ExpressAdapter } from "@nestjs/platform-express";
+import { config } from "dotenv";
+
+config();
 
 async function createNestApp(expressApp: express.Express) {
   const app = await NestFactory.create(
@@ -43,6 +46,8 @@ async function createNestApp(expressApp: express.Express) {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api-docs", app, document);
+
+  app.setGlobalPrefix(process.env.API || "api/v1");
 
   app.enableShutdownHooks();
 

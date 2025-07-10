@@ -3,7 +3,6 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { AuthService } from './auth.service';
 import { LoginAdminDto } from './dto/login.dto';
 import { CreateAdminDto } from './dto/register.dto';
-import { config } from 'dotenv';
 import {
   ApiTags,
   ApiOperation,
@@ -15,11 +14,9 @@ import {
   ApiBadRequestResponse,
 } from '@nestjs/swagger';
 
-config();
-
 @Public()
 @ApiTags('Authentication')
-@Controller(`${process.env.API}auth`)
+@Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

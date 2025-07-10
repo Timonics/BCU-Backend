@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { BandService } from './band.service';
 import { Band } from 'src/entity/band.entity';
-import { config } from 'dotenv';
 import { UpdateBandDto } from './dto/update_band.dto';
 import { CreateBandDto } from './dto/create_band.dto';
 import {
@@ -25,11 +24,9 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 
-config();
-
 @ApiTags('Bands')
 @ApiBearerAuth('access-token')
-@Controller(`${process.env.API}bands`)
+@Controller("bands")
 export class BandController {
   constructor(private readonly bandService: BandService) {}
 
