@@ -40,9 +40,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ResponseInterceptor());
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup("api/v1/api-docs", app, document);
-
-  app.setGlobalPrefix(process.env.API || "api/v1");
+  SwaggerModule.setup("api-docs", app, document);
 
   app.enableShutdownHooks();
 

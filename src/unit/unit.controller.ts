@@ -27,7 +27,7 @@ import {
 
 @ApiTags('Units')
 @ApiBearerAuth('access-token')
-@Controller(`${process.env.API}units`)
+@Controller("units")
 export class UnitController {
   constructor(private readonly unitService: UnitService) {}
 
