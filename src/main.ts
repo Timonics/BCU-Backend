@@ -16,7 +16,7 @@ async function createNestApp(expressApp: express.Express) {
     new ExpressAdapter(expressApp)
   );
 
-  const config = new DocumentBuilder()
+  const swaggerConfig = new DocumentBuilder()
     .setTitle("BCU Church Management API")
     .setDescription("API for managing church members, bands, and units")
     .setVersion("1.0")
@@ -44,17 +44,12 @@ async function createNestApp(expressApp: express.Express) {
   app.useGlobalFilters(new ErrorException());
   app.useGlobalInterceptors(new ResponseInterceptor());
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("api-docs", app, document);
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup("api/v1/api-docs", app, document);
 
   app.setGlobalPrefix(process.env.API || "api/v1");
 
   app.enableShutdownHooks();
-
-  process.on("SIGTERM", async () => {
-    await app.close();
-    process.exit(0);
-  });
 
   await app.init();
   return expressApp;
@@ -63,8 +58,10 @@ async function createNestApp(expressApp: express.Express) {
 const expressApp = express();
 const nestAppPromise = createNestApp(expressApp);
 
-if (process.env.NODE_ENV === "development") {
-  nestAppPromise.then((app) => app.listen(process.env.PORT ?? 3000));
-}
+module.exports = nestAppPromise.then((app) => {
+  if (process.env.NODE_ENV === "development") {
+    app.listen(process.env.PORT || 3000);
+  }
 
-export default nestAppPromise;
+  return app;
+});
