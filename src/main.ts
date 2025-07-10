@@ -53,7 +53,7 @@ async function bootstrap() {
   return server;
 }
 
-export default bootstrap().then((app) => {
+module.exports = bootstrap().then((app) => {
   if (process.env.NODE_ENV === "development") {
     app.listen(process.env.PORT || 3000);
   }
