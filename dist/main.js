@@ -32,8 +32,7 @@ async function bootstrap() {
     app.useGlobalFilters(new error_exceptions_1.ErrorException());
     app.useGlobalInterceptors(new reponse_interceptor_1.ResponseInterceptor());
     const document = swagger_1.SwaggerModule.createDocument(app, swaggerConfig);
-    swagger_1.SwaggerModule.setup("api/v1/api-docs", app, document);
-    app.setGlobalPrefix(process.env.API || "api/v1");
+    swagger_1.SwaggerModule.setup("api-docs", app, document);
     app.enableShutdownHooks();
     app.listen(process.env.PORT || 3000);
 }

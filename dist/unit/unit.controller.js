@@ -147,7 +147,7 @@ __decorate([
 exports.UnitController = UnitController = __decorate([
     (0, swagger_1.ApiTags)('Units'),
     (0, swagger_1.ApiBearerAuth)('access-token'),
-    (0, common_1.Controller)(`${process.env.API}units`),
+    (0, common_1.Controller)("units"),
     __metadata("design:paramtypes", [unit_service_1.UnitService])
 ], UnitController);
 //# sourceMappingURL=unit.controller.js.map
