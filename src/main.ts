@@ -26,6 +26,16 @@ async function bootstrap() {
     )
     .build();
 
+  app.enableCors({
+    origin: [
+      "http://localhost:5173/",
+      "https://bcu-gules.vercel.app/",
+      "https://bcu-backend-ckde.onrender.com/",
+    ],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true,
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
