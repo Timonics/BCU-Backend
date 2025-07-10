@@ -10,11 +10,9 @@ import { config } from "dotenv";
 
 config();
 
-async function createNestApp(expressApp: express.Express) {
-  const app = await NestFactory.create(
-    AppModule,
-    new ExpressAdapter(expressApp)
-  );
+async function bootstrap() {
+  const server = express();
+  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle("BCU Church Management API")
@@ -52,13 +50,10 @@ async function createNestApp(expressApp: express.Express) {
   app.enableShutdownHooks();
 
   await app.init();
-  return expressApp;
+  return server;
 }
 
-const expressApp = express();
-const nestAppPromise = createNestApp(expressApp);
-
-module.exports = nestAppPromise.then((app) => {
+export default bootstrap().then((app) => {
   if (process.env.NODE_ENV === "development") {
     app.listen(process.env.PORT || 3000);
   }
