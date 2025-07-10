@@ -4,15 +4,12 @@ import { ValidationPipe } from "@nestjs/common";
 import { ErrorException } from "./common/exceptions/error.exceptions";
 import { ResponseInterceptor } from "./common/interceptors/reponse.interceptor";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import * as express from "express";
-import { ExpressAdapter } from "@nestjs/platform-express";
 import { config } from "dotenv";
 
 config();
 
 async function bootstrap() {
-  const server = express();
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
+  const app = await NestFactory.create(AppModule);
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle("BCU Church Management API")
@@ -49,14 +46,7 @@ async function bootstrap() {
 
   app.enableShutdownHooks();
 
-  await app.init();
-  return server;
+  app.listen(process.env.PORT || 3000);
 }
 
-module.exports = bootstrap().then((app) => {
-  if (process.env.NODE_ENV === "development") {
-    app.listen(process.env.PORT || 3000);
-  }
-
-  return app;
-});
+bootstrap();
