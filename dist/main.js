@@ -21,6 +21,16 @@ async function bootstrap() {
         description: 'Enter JWT token in format: "Bearer {token}"',
     }, "access-token")
         .build();
+    app.enableCors({
+        origin: [
+            "http://localhost:5173/",
+            "https://bcu-gules.vercel.app/",
+            "https://bcu-backend-ckde.onrender.com/",
+        ],
+        exposedHeaders: ["Vary"],
+        methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+        credentials: true,
+    });
     app.useGlobalPipes(new common_1.ValidationPipe({
         transform: true,
         transformOptions: {
