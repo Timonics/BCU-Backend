@@ -1,5 +1,10 @@
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 import { config } from "dotenv";
+import { Admin } from "src/entity/admin.entity";
+import { Band } from "src/entity/band.entity";
+import { LeadershipPosition } from "src/entity/leadership.entity";
+import { Member } from "src/entity/member.entity";
+import { Unit } from "src/entity/unit.entity";
 
 config();
 
@@ -12,7 +17,7 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
   // username: process.env.DB_USERNAME,
   // password: process.env.DB_PASSWORD,
   // database: process.env.DB_NAME,
-  entities: [__dirname + "/../**/*.entity{.ts,.js}"],
+  entities: [Admin, Band, Member, Unit, LeadershipPosition],
   synchronize: process.env.NODE_ENV !== "production",
   autoLoadEntities: true,
   poolSize: 10,
