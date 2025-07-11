@@ -28,6 +28,9 @@ let AuthService = class AuthService {
             return result;
         }
     }
+    async findByEmail(email) {
+        return this.adminService.findAdminByEmail(email);
+    }
     async login(payload) {
         return { access_token: this.jwtService.sign(payload) };
     }

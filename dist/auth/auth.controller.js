@@ -25,9 +25,13 @@ let AuthController = class AuthController {
         this.authService = authService;
     }
     async login(loginData) {
+        const userExists = await this.authService.findByEmail(loginData.email);
+        if (!userExists) {
+            throw new common_1.BadRequestException("This email does not exist");
+        }
         const loggedUser = await this.authService.validateUser(loginData.email, loginData.password);
         if (!loggedUser) {
-            throw new common_1.UnauthorizedException('Invalid credentials');
+            throw new common_1.UnauthorizedException("Invalid credentials");
         }
         return this.authService.login({
             id: loggedUser.id,
@@ -40,33 +44,33 @@ let AuthController = class AuthController {
 };
 exports.AuthController = AuthController;
 __decorate([
-    (0, common_1.Post)('login'),
+    (0, common_1.Post)("login"),
     (0, swagger_1.ApiOperation)({
-        summary: 'Admin login',
-        description: 'Authenticates admin and returns JWT token',
+        summary: "Admin login",
+        description: "Authenticates admin and returns JWT token",
     }),
     (0, swagger_1.ApiBody)({
         type: login_dto_1.LoginAdminDto,
-        description: 'Admin credentials',
+        description: "Admin credentials",
     }),
     (0, swagger_1.ApiResponse)({
         status: 200,
-        description: 'Login successful',
+        description: "Login successful",
         schema: {
-            type: 'object',
+            type: "object",
             properties: {
                 access_token: {
-                    type: 'string',
-                    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                    type: "string",
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                 },
             },
         },
     }),
     (0, swagger_1.ApiUnauthorizedResponse)({
-        description: 'Invalid credentials',
+        description: "Invalid credentials",
     }),
     (0, swagger_1.ApiBadRequestResponse)({
-        description: 'Validation error',
+        description: "Validation error",
     }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -74,27 +78,27 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
 __decorate([
-    (0, common_1.Post)('register'),
+    (0, common_1.Post)("register"),
     (0, swagger_1.ApiOperation)({
-        summary: 'Admin registration',
-        description: 'Creates a new admin account (restricted to super admins)',
+        summary: "Admin registration",
+        description: "Creates a new admin account (restricted to super admins)",
     }),
     (0, swagger_1.ApiBody)({
         type: register_dto_1.CreateAdminDto,
-        description: 'New admin details',
+        description: "New admin details",
     }),
     (0, swagger_1.ApiCreatedResponse)({
-        description: 'Admin created successfully',
+        description: "Admin created successfully",
         type: register_dto_1.CreateAdminDto,
     }),
     (0, swagger_1.ApiConflictResponse)({
-        description: 'Email already exists',
+        description: "Email already exists",
     }),
     (0, swagger_1.ApiBadRequestResponse)({
-        description: 'Validation error',
+        description: "Validation error",
     }),
     (0, swagger_1.ApiUnauthorizedResponse)({
-        description: 'Unauthorized (requires admin privileges)',
+        description: "Unauthorized (requires admin privileges)",
     }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -103,7 +107,7 @@ __decorate([
 ], AuthController.prototype, "register", null);
 exports.AuthController = AuthController = __decorate([
     (0, public_decorator_1.Public)(),
-    (0, swagger_1.ApiTags)('Authentication'),
+    (0, swagger_1.ApiTags)("Authentication"),
     (0, common_1.Controller)("auth"),
     __metadata("design:paramtypes", [auth_service_1.AuthService])
 ], AuthController);

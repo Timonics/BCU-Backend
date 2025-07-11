@@ -12,6 +12,7 @@ export declare class AuthService {
         lastName: string;
         email: string;
     } | undefined>;
+    findByEmail(email: string): Promise<Admin | null>;
     login(payload: AccessTokenPayload): Promise<{
         access_token: string;
     }>;

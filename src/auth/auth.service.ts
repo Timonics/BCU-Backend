@@ -21,6 +21,10 @@ export class AuthService {
     }
   }
 
+  async findByEmail(email: string): Promise<Admin | null> {
+    return this.adminService.findAdminByEmail(email);
+  }
+
   async login(payload: AccessTokenPayload): Promise<{ access_token: string }> {
     return { access_token: this.jwtService.sign(payload) };
   }
