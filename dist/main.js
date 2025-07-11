@@ -12,7 +12,7 @@ async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     const swaggerConfig = new swagger_1.DocumentBuilder()
         .setTitle("BCU Church Management API")
-        .setDescription("API for managing church members, bands, and units")
+        .setDescription("APIs for C&S Youth Fellowship members management")
         .setVersion("1.0")
         .addBearerAuth({
         type: "http",
@@ -27,7 +27,6 @@ async function bootstrap() {
             "https://bcu-gules.vercel.app/",
             "https://bcu-backend-ckde.onrender.com/",
         ],
-        exposedHeaders: ["Vary"],
         methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
         credentials: true,
     });

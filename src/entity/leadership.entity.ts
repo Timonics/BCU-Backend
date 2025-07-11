@@ -1,6 +1,5 @@
-import { LeadershipType } from 'src/utils/enums/leadership_type.enum';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { Member } from './member.entity';
+import { LeadershipType } from '../utils/enums/leadership_type.enum';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
@@ -17,7 +16,7 @@ export class LeadershipPosition {
     example: LeadershipType.CAPTAIN,
     description: 'Leadership type',
   })
-  @Column({ type: 'enum', enum: LeadershipType, unique: true })
+  @Column({ type: 'enum', enum: LeadershipType })
   type: LeadershipType;
 
   @ApiProperty({

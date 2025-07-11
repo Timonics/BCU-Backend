@@ -1,5 +1,5 @@
-import { Gender } from 'src/utils/enums/gender.enum';
-import { MemberStatus } from 'src/utils/enums/status.enum';
+import { Gender } from '../utils/enums/gender.enum';
+import { MemberStatus } from '../utils/enums/status.enum';
 import { Band } from './band.entity';
 import { Unit } from './unit.entity';
 import { LeadershipPosition } from './leadership.entity';

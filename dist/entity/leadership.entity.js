@@ -33,7 +33,7 @@ __decorate([
         example: leadership_type_enum_1.LeadershipType.CAPTAIN,
         description: 'Leadership type',
     }),
-    (0, typeorm_1.Column)({ type: 'enum', enum: leadership_type_enum_1.LeadershipType, unique: true }),
+    (0, typeorm_1.Column)({ type: 'enum', enum: leadership_type_enum_1.LeadershipType }),
     __metadata("design:type", String)
 ], LeadershipPosition.prototype, "type", void 0);
 __decorate([

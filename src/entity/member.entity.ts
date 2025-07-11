@@ -1,5 +1,5 @@
-import { Gender } from 'src/utils/enums/gender.enum';
-import { MemberStatus } from 'src/utils/enums/status.enum';
+import { Gender } from '../utils/enums/gender.enum';
+import { MemberStatus } from '../utils/enums/status.enum';
 import {
   Column,
   Entity,

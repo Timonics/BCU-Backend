@@ -13,7 +13,7 @@ async function bootstrap() {
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle("BCU Church Management API")
-    .setDescription("API for managing church members, bands, and units")
+    .setDescription("APIs for C&S Youth Fellowship members management")
     .setVersion("1.0")
     .addBearerAuth(
       {
