@@ -11,12 +11,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateUnitDto = void 0;
 const class_validator_1 = require("class-validator");
-const member_entity_1 = require("../../entity/member.entity");
 const swagger_1 = require("@nestjs/swagger");
 class CreateUnitDto {
     name;
     foundingDate;
-    members;
     unitHeadId;
 }
 exports.CreateUnitDto = CreateUnitDto;
@@ -40,15 +38,6 @@ __decorate([
     (0, class_validator_1.IsISO8601)({ strict: true, strictSeparator: true }),
     __metadata("design:type", String)
 ], CreateUnitDto.prototype, "foundingDate", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        description: 'Array of members belonging to this unit',
-        type: member_entity_1.Member,
-        isArray: true,
-    }),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Array)
-], CreateUnitDto.prototype, "members", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: 'ID of the unit head (member who leads this unit)',

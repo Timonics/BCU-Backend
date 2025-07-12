@@ -28,8 +28,17 @@ let LeadershipService = class LeadershipService {
     async findLeadershipPositionById(id) {
         return this.leadershipRepository.findOne({
             where: { id },
-            relations: ['members'],
+            relations: ["members"],
         });
+    }
+    async findAllLeaders() {
+        return this.leadershipRepository
+            .createQueryBuilder("leader")
+            .leftJoinAndSelect("leader.members", "members")
+            .leftJoinAndSelect("members.band", "band")
+            .leftJoinAndSelect("members.unit", "unit")
+            .select(["leader", "band.id", "band.name", "unit.id", "unit.name"])
+            .getMany();
     }
 };
 exports.LeadershipService = LeadershipService;

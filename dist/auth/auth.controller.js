@@ -33,10 +33,16 @@ let AuthController = class AuthController {
         if (!loggedUser) {
             throw new common_1.UnauthorizedException("Invalid credentials");
         }
-        return this.authService.login({
+        const token = await this.authService.login({
             id: loggedUser.id,
             email: loggedUser.email,
+            isVerified: loggedUser.isVerified,
         });
+        const { password, ...userDetails } = userExists;
+        return {
+            ...userDetails,
+            ...token,
+        };
     }
     async register(signupData) {
         return this.authService.register(signupData);

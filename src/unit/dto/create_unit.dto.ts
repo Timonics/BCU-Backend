@@ -28,14 +28,6 @@ export class CreateUnitDto {
   foundingDate: string;
 
   @ApiPropertyOptional({
-    description: 'Array of members belonging to this unit',
-    type: Member,
-    isArray: true,
-  })
-  @IsOptional()
-  members: Member[];
-
-  @ApiPropertyOptional({
     description: 'ID of the unit head (member who leads this unit)',
     example: 1,
     type: Number,

@@ -54,9 +54,7 @@ export class AuthController {
   @ApiBadRequestResponse({
     description: "Validation error",
   })
-  async login(@Body() loginData: LoginAdminDto): Promise<{
-    access_token: string;
-  }> {
+  async login(@Body() loginData: LoginAdminDto) {
     const userExists = await this.authService.findByEmail(loginData.email);
     if (!userExists) {
       throw new BadRequestException("This email does not exist");
@@ -66,14 +64,21 @@ export class AuthController {
       loginData.email,
       loginData.password
     );
-
     if (!loggedUser) {
       throw new UnauthorizedException("Invalid credentials");
     }
-    return this.authService.login({
+
+    const token = await this.authService.login({
       id: loggedUser.id,
       email: loggedUser.email,
+      isVerified: loggedUser.isVerified,
     });
+
+    const { password, ...userDetails } = userExists;
+    return {
+      ...userDetails,
+      ...token,
+    };
   }
 
   @Post("register")

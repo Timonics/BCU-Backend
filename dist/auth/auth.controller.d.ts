@@ -6,12 +6,19 @@ export declare class AuthController {
     constructor(authService: AuthService);
     login(loginData: LoginAdminDto): Promise<{
         access_token: string;
+        id: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+        isVerified: boolean;
     }>;
     register(signupData: CreateAdminDto): Promise<{
+        message: string;
         access_token: string;
         id: number;
         firstName: string;
         lastName: string;
         email: string;
+        isVerified: boolean;
     }>;
 }

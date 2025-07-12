@@ -1,11 +1,11 @@
-import { Member } from 'src/entity/member.entity';
-import { Repository } from 'typeorm';
-import { CreateMemberDto } from './dto/create_member.dto';
-import { BandService } from 'src/band/band.service';
-import { UnitService } from 'src/unit/unit.service';
-import { UpdateMemberDto } from './dto/update_member.dto';
-import { MemberMetaData } from './dto/member_metadata.dto';
-import { LeadershipService } from 'src/leadership/leadership.service';
+import { Member } from "src/entity/member.entity";
+import { Repository } from "typeorm";
+import { CreateMemberDto } from "./dto/create_member.dto";
+import { BandService } from "src/band/band.service";
+import { UnitService } from "src/unit/unit.service";
+import { UpdateMemberDto } from "./dto/update_member.dto";
+import { MemberMetaData } from "./dto/member_metadata.dto";
+import { LeadershipService } from "src/leadership/leadership.service";
 export declare class MemberService {
     private readonly memberRepository;
     private readonly bandservice;

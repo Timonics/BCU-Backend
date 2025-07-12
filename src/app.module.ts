@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
 import { BandModule } from './band/band.module';
 import { UnitModule } from './unit/unit.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { UnitModule } from './unit/unit.module';
     AuthModule,
     BandModule,
     UnitModule,
+    EmailModule,
   ],
   providers: [
     {

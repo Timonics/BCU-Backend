@@ -29,6 +29,12 @@ let AdminService = class AdminService {
     async findAdminByEmail(email) {
         return this.adminRepository.findOne({ where: { email } });
     }
+    async findById(id) {
+        return this.adminRepository.findOne({ where: { id } });
+    }
+    async markEmailAsVerified(email) {
+        return this.adminRepository.update({ email }, { isVerified: true });
+    }
 };
 exports.AdminService = AdminService;
 exports.AdminService = AdminService = __decorate([

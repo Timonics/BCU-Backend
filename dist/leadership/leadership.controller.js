@@ -26,30 +26,47 @@ let LeadershpController = class LeadershpController {
     async createLeadership(leadershipData) {
         return await this.leadersipService.create(leadershipData);
     }
+    async getAllLeader() {
+        return await this.leadersipService.findAllLeaders();
+    }
 };
 exports.LeadershpController = LeadershpController;
 __decorate([
-    (0, common_1.Post)(''),
+    (0, common_1.Post)(""),
     (0, swagger_1.ApiOperation)({
-        summary: 'Create a new leadership position',
-        description: 'Creates a new leadership position in the system',
+        summary: "Create a new leadership position",
+        description: "Creates a new leadership position in the system",
     }),
     (0, swagger_1.ApiCreatedResponse)({
-        description: 'Leadership position successfully created',
+        description: "Leadership position successfully created",
         type: leadership_entity_1.LeadershipPosition,
     }),
     (0, swagger_1.ApiResponse)({
         status: 400,
-        description: 'Bad request - invalid data provided',
+        description: "Bad request - invalid data provided",
     }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_leadership_dto_1.CreateLeadershipDto]),
     __metadata("design:returntype", Promise)
 ], LeadershpController.prototype, "createLeadership", null);
+__decorate([
+    (0, common_1.Get)(),
+    (0, swagger_1.ApiOperation)({ summary: "Get all leaders" }),
+    (0, swagger_1.ApiOkResponse)({
+        description: "List of all leaders",
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 500,
+        description: "Internal server error",
+    }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], LeadershpController.prototype, "getAllLeader", null);
 exports.LeadershpController = LeadershpController = __decorate([
-    (0, swagger_1.ApiTags)('Leadership'),
-    (0, swagger_1.ApiBearerAuth)('access-token'),
+    (0, swagger_1.ApiTags)("Leadership"),
+    (0, swagger_1.ApiBearerAuth)("access-token"),
     (0, common_1.Controller)("leadership"),
     __metadata("design:paramtypes", [leadership_service_1.LeadershipService])
 ], LeadershpController);

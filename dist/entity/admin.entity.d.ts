@@ -3,5 +3,6 @@ export declare class Admin {
     firstName: string;
     lastName: string;
     email: string;
+    isVerified: boolean;
     password: string;
 }

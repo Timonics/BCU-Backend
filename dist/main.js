@@ -22,13 +22,16 @@ async function bootstrap() {
     }, "access-token")
         .build();
     app.enableCors({
-        origin: [
-            "http://localhost:5173/",
-            "https://bcu-gules.vercel.app/",
-            "https://bcu-backend-ckde.onrender.com/",
-        ],
-        methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+        origin: ["http://localhost:5173", "https://bcu-gules.vercel.app"],
+        methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
         credentials: true,
+        allowedHeaders: [
+            "Content-Type",
+            "Authorization",
+            "Accept",
+            "X-Requested-With",
+            "Access-Control-Allow-Origin",
+        ],
     });
     app.useGlobalPipes(new common_1.ValidationPipe({
         transform: true,

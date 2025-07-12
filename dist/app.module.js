@@ -17,6 +17,7 @@ const auth_module_1 = require("./auth/auth.module");
 const admin_module_1 = require("./admin/admin.module");
 const band_module_1 = require("./band/band.module");
 const unit_module_1 = require("./unit/unit.module");
+const email_module_1 = require("./email/email.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -29,6 +30,7 @@ exports.AppModule = AppModule = __decorate([
             auth_module_1.AuthModule,
             band_module_1.BandModule,
             unit_module_1.UnitModule,
+            email_module_1.EmailModule,
         ],
         providers: [
             {

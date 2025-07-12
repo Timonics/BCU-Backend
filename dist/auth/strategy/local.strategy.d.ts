@@ -11,6 +11,7 @@ export declare class LocalStrategy extends LocalStrategy_base {
         firstName: string;
         lastName: string;
         email: string;
+        isVerified: boolean;
     } | undefined>;
 }
 export {};

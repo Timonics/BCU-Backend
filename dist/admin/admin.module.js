@@ -12,6 +12,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const admin_entity_1 = require("../entity/admin.entity");
 const admin_service_1 = require("./admin.service");
 const auth_module_1 = require("../auth/auth.module");
+const admin_controller_1 = require("./admin.controller");
 let AdminModule = class AdminModule {
 };
 exports.AdminModule = AdminModule;
@@ -23,6 +24,7 @@ exports.AdminModule = AdminModule = __decorate([
         ],
         providers: [admin_service_1.AdminService],
         exports: [admin_service_1.AdminService],
+        controllers: [admin_controller_1.AdminController],
     })
 ], AdminModule);
 //# sourceMappingURL=admin.module.js.map

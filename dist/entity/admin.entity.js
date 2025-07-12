@@ -17,34 +17,40 @@ let Admin = class Admin {
     firstName;
     lastName;
     email;
+    isVerified;
     password;
 };
 exports.Admin = Admin;
 __decorate([
     (0, swagger_1.ApiProperty)({
         example: 1,
-        description: 'Auto-generated unique identifier',
+        description: "Auto-generated unique identifier",
     }),
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
 ], Admin.prototype, "id", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'Oderinde', description: 'First name of member' }),
+    (0, swagger_1.ApiProperty)({ example: "Oderinde", description: "First name of admin" }),
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Admin.prototype, "firstName", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'Michael', description: 'Last name of member' }),
+    (0, swagger_1.ApiProperty)({ example: "Michael", description: "Last name of admin" }),
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Admin.prototype, "lastName", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'mick@example.com', description: 'Email address' }),
+    (0, swagger_1.ApiProperty)({ example: "mick@example.com", description: "Email address" }),
     (0, typeorm_1.Column)({ unique: true }),
     __metadata("design:type", String)
 ], Admin.prototype, "email", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: 'Password of the admin' }),
+    (0, swagger_1.ApiProperty)({ description: "Admin email is verified" }),
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], Admin.prototype, "isVerified", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: "Password of the admin" }),
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Admin.prototype, "password", void 0);

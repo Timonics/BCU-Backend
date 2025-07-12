@@ -36,31 +36,31 @@ let MemberService = MemberService_1 = class MemberService {
     }
     async findAll() {
         return this.memberRepository
-            .createQueryBuilder('member')
-            .leftJoinAndSelect('member.band', 'band')
-            .leftJoin('band.bandCaptain', 'bandCaptain')
-            .leftJoinAndSelect('member.unit', 'unit')
-            .leftJoinAndSelect('member.leadershipPosition', 'leadershipPosition')
+            .createQueryBuilder("member")
+            .leftJoinAndSelect("member.band", "band")
+            .leftJoin("band.bandCaptain", "bandCaptain")
+            .leftJoinAndSelect("member.unit", "unit")
+            .leftJoinAndSelect("member.leadershipPosition", "leadershipPosition")
             .select([
-            'member',
-            'band.id',
-            'band.name',
-            'bandCaptain.id',
-            'bandCaptain.firstName',
-            'bandCaptain.lastName',
-            'bandCaptain.otherNames',
-            'unit.id',
-            'unit.name',
-            'leadershipPosition',
+            "member",
+            "band.id",
+            "band.name",
+            "bandCaptain.id",
+            "bandCaptain.firstName",
+            "bandCaptain.lastName",
+            "bandCaptain.otherNames",
+            "unit.id",
+            "unit.name",
+            "leadershipPosition",
         ])
             .getMany();
     }
     async findOneById(id) {
         return this.memberRepository
-            .createQueryBuilder('member')
-            .where('member.id = :id', { id })
-            .leftJoinAndSelect('member.band', 'band')
-            .leftJoinAndSelect('member.unit', 'unit')
+            .createQueryBuilder("member")
+            .where("member.id = :id", { id })
+            .leftJoinAndSelect("member.band", "band")
+            .leftJoinAndSelect("member.unit", "unit")
             .getOne();
     }
     async findOneByEmail(email) {
@@ -133,7 +133,7 @@ let MemberService = MemberService_1 = class MemberService {
             return this.memberRepository.count();
         }
         catch (err) {
-            this.logger.error('Failed to count members', err.stack);
+            this.logger.error("Failed to count members", err.stack);
             return 0;
         }
     }
@@ -144,7 +144,7 @@ let MemberService = MemberService_1 = class MemberService {
             });
         }
         catch (err) {
-            this.logger.error('Failed to count members', err.stack);
+            this.logger.error("Failed to count members", err.stack);
             return 0;
         }
     }
@@ -155,7 +155,7 @@ let MemberService = MemberService_1 = class MemberService {
             });
         }
         catch (err) {
-            this.logger.error('Failed to count members', err.stack);
+            this.logger.error("Failed to count members", err.stack);
             return 0;
         }
     }

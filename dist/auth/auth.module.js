@@ -16,6 +16,7 @@ const dotenv_1 = require("dotenv");
 const auth_service_1 = require("./auth.service");
 const admin_module_1 = require("../admin/admin.module");
 const auth_guard_1 = require("./guard/auth.guard");
+const email_module_1 = require("../email/email.module");
 (0, dotenv_1.config)();
 let AuthModule = class AuthModule {
 };
@@ -25,13 +26,14 @@ exports.AuthModule = AuthModule = __decorate([
         imports: [
             jwt_1.JwtModule.register({
                 secret: process.env.JWT_SECRET,
-                signOptions: { expiresIn: '1h' },
+                signOptions: { expiresIn: "1h" },
             }),
-            admin_module_1.AdminModule
+            admin_module_1.AdminModule,
+            email_module_1.EmailModule,
         ],
         providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy, local_strategy_1.LocalStrategy, auth_guard_1.JwtGuard],
         controllers: [auth_controller_1.AuthController],
-        exports: [auth_service_1.AuthService]
+        exports: [auth_service_1.AuthService],
     })
 ], AuthModule);
 //# sourceMappingURL=auth.module.js.map

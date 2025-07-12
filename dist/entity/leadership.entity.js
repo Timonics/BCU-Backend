@@ -13,16 +13,18 @@ exports.LeadershipPosition = void 0;
 const leadership_type_enum_1 = require("../utils/enums/leadership_type.enum");
 const typeorm_1 = require("typeorm");
 const swagger_1 = require("@nestjs/swagger");
+const member_entity_1 = require("./member.entity");
 let LeadershipPosition = class LeadershipPosition {
     id;
     type;
+    members;
     appointedAt;
 };
 exports.LeadershipPosition = LeadershipPosition;
 __decorate([
     (0, swagger_1.ApiProperty)({
         example: 1,
-        description: 'Auto-generated unique identifier',
+        description: "Auto-generated unique identifier",
     }),
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
@@ -31,21 +33,30 @@ __decorate([
     (0, swagger_1.ApiProperty)({
         enum: leadership_type_enum_1.LeadershipType,
         example: leadership_type_enum_1.LeadershipType.CAPTAIN,
-        description: 'Leadership type',
+        description: "Leadership type",
     }),
-    (0, typeorm_1.Column)({ type: 'enum', enum: leadership_type_enum_1.LeadershipType }),
+    (0, typeorm_1.Column)({ type: "enum", enum: leadership_type_enum_1.LeadershipType }),
     __metadata("design:type", String)
 ], LeadershipPosition.prototype, "type", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
-        example: '1995-07-21',
-        description: 'Date when the position was established',
-        type: 'string',
-        format: 'date',
+        description: "List of members having this leadership position",
+        type: () => [member_entity_1.Member],
+        isArray: true,
+    }),
+    (0, typeorm_1.OneToMany)(() => member_entity_1.Member, (member) => member.leadershipPosition),
+    __metadata("design:type", Array)
+], LeadershipPosition.prototype, "members", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: "1995-07-21",
+        description: "Date when the position was established",
+        type: "string",
+        format: "date",
     }),
     (0, typeorm_1.Column)({
-        type: 'timestamp',
-        default: () => 'CURRENT_TIMESTAMP',
+        type: "timestamp",
+        default: () => "CURRENT_TIMESTAMP",
         nullable: true,
     }),
     __metadata("design:type", Date)

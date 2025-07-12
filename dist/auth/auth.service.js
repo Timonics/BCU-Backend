@@ -14,16 +14,25 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const bcrypt_1 = require("bcrypt");
 const admin_service_1 = require("../admin/admin.service");
+const email_service_1 = require("../email/email.service");
 let AuthService = class AuthService {
     jwtService;
     adminService;
-    constructor(jwtService, adminService) {
+    emailVerifyService;
+    constructor(jwtService, adminService, emailVerifyService) {
         this.jwtService = jwtService;
         this.adminService = adminService;
+        this.emailVerifyService = emailVerifyService;
     }
-    async validateUser(email, passowrd) {
+    async validateUser(email, password) {
         const validatedAdmin = await this.adminService.findAdminByEmail(email);
-        if (validatedAdmin && (0, bcrypt_1.compareSync)(passowrd, validatedAdmin.password)) {
+        if (!validatedAdmin)
+            return undefined;
+        const isPasswordValid = (0, bcrypt_1.compareSync)(password, validatedAdmin.password);
+        if (!validatedAdmin.isVerified) {
+            throw new common_1.UnauthorizedException("Please verify your email first");
+        }
+        if (validatedAdmin && isPasswordValid) {
             const { password, ...result } = validatedAdmin;
             return result;
         }
@@ -43,9 +52,11 @@ let AuthService = class AuthService {
             ...adminData,
             password: (0, bcrypt_1.hashSync)(adminData.password, 10),
         });
+        await this.emailVerifyService.sendVerificationLink(newAdmin.email);
         const { password, ...result } = newAdmin;
         return {
             ...result,
+            message: "Registration successful. Please check your email for verification.",
             access_token: this.jwtService.sign({ email: newAdmin.email }),
         };
     }
@@ -54,6 +65,7 @@ exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [jwt_1.JwtService,
-        admin_service_1.AdminService])
+        admin_service_1.AdminService,
+        email_service_1.EmailService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

@@ -1,14 +1,14 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Member } from 'src/entity/member.entity';
-import { Repository } from 'typeorm';
-import { CreateMemberDto } from './dto/create_member.dto';
-import { BandService } from 'src/band/band.service';
-import { UnitService } from 'src/unit/unit.service';
-import { UpdateMemberDto } from './dto/update_member.dto';
-import { MemberMetaData } from './dto/member_metadata.dto';
-import { Gender } from 'src/utils/enums/gender.enum';
-import { LeadershipService } from 'src/leadership/leadership.service';
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Member } from "src/entity/member.entity";
+import { Repository } from "typeorm";
+import { CreateMemberDto } from "./dto/create_member.dto";
+import { BandService } from "src/band/band.service";
+import { UnitService } from "src/unit/unit.service";
+import { UpdateMemberDto } from "./dto/update_member.dto";
+import { MemberMetaData } from "./dto/member_metadata.dto";
+import { Gender } from "src/utils/enums/gender.enum";
+import { LeadershipService } from "src/leadership/leadership.service";
 
 @Injectable()
 export class MemberService {
@@ -19,37 +19,37 @@ export class MemberService {
     private readonly memberRepository: Repository<Member>,
     private readonly bandservice: BandService,
     private readonly unitservice: UnitService,
-    private readonly leadershipService: LeadershipService,
+    private readonly leadershipService: LeadershipService
   ) {}
 
   async findAll(): Promise<Member[]> {
     return this.memberRepository
-      .createQueryBuilder('member')
-      .leftJoinAndSelect('member.band', 'band')
-      .leftJoin('band.bandCaptain', 'bandCaptain')
-      .leftJoinAndSelect('member.unit', 'unit')
-      .leftJoinAndSelect('member.leadershipPosition', 'leadershipPosition')
+      .createQueryBuilder("member")
+      .leftJoinAndSelect("member.band", "band")
+      .leftJoin("band.bandCaptain", "bandCaptain")
+      .leftJoinAndSelect("member.unit", "unit")
+      .leftJoinAndSelect("member.leadershipPosition", "leadershipPosition")
       .select([
-        'member',
-        'band.id',
-        'band.name',
-        'bandCaptain.id',
-        'bandCaptain.firstName',
-        'bandCaptain.lastName',
-        'bandCaptain.otherNames',
-        'unit.id',
-        'unit.name',
-        'leadershipPosition',
+        "member",
+        "band.id",
+        "band.name",
+        "bandCaptain.id",
+        "bandCaptain.firstName",
+        "bandCaptain.lastName",
+        "bandCaptain.otherNames",
+        "unit.id",
+        "unit.name",
+        "leadershipPosition",
       ])
       .getMany();
   }
 
   async findOneById(id: number): Promise<Member | null> {
     return this.memberRepository
-      .createQueryBuilder('member')
-      .where('member.id = :id', { id })
-      .leftJoinAndSelect('member.band', 'band')
-      .leftJoinAndSelect('member.unit', 'unit')
+      .createQueryBuilder("member")
+      .where("member.id = :id", { id })
+      .leftJoinAndSelect("member.band", "band")
+      .leftJoinAndSelect("member.unit", "unit")
       .getOne();
   }
 
@@ -64,7 +64,7 @@ export class MemberService {
       const band = await this.bandservice.findBandById(memberData.bandId);
       if (!band)
         throw new NotFoundException(
-          `Band with ID ${memberData.bandId} not found`,
+          `Band with ID ${memberData.bandId} not found`
         );
 
       member.band = band;
@@ -74,7 +74,7 @@ export class MemberService {
       const unit = await this.unitservice.findUnitById(memberData.unitId);
       if (!unit) {
         throw new NotFoundException(
-          `Unit with ID ${memberData.unitId} not found`,
+          `Unit with ID ${memberData.unitId} not found`
         );
       }
 
@@ -83,11 +83,11 @@ export class MemberService {
 
     if (memberData.leadershipPositionId) {
       const leader = await this.leadershipService.findLeadershipPositionById(
-        memberData.leadershipPositionId,
+        memberData.leadershipPositionId
       );
       if (!leader) {
         throw new NotFoundException(
-          `Leadership Position with ID ${memberData.leadershipPositionId} not found`,
+          `Leadership Position with ID ${memberData.leadershipPositionId} not found`
         );
       }
 
@@ -99,7 +99,7 @@ export class MemberService {
 
   async update(
     id: number,
-    memberUpdateData: Partial<UpdateMemberDto>,
+    memberUpdateData: Partial<UpdateMemberDto>
   ): Promise<Member> {
     let memberExists = await this.memberRepository.findOne({ where: { id } });
 
@@ -111,7 +111,7 @@ export class MemberService {
       const band = await this.bandservice.findBandById(memberUpdateData.bandId);
       if (!band)
         throw new NotFoundException(
-          `Band with ID ${memberUpdateData.bandId} not found`,
+          `Band with ID ${memberUpdateData.bandId} not found`
         );
 
       memberExists.band = band;
@@ -121,7 +121,7 @@ export class MemberService {
       const unit = await this.unitservice.findUnitById(memberUpdateData.unitId);
       if (!unit)
         throw new NotFoundException(
-          `Unit with ID ${memberUpdateData.unitId} not found`,
+          `Unit with ID ${memberUpdateData.unitId} not found`
         );
 
       memberExists.unit = unit;
@@ -129,11 +129,11 @@ export class MemberService {
 
     if (memberUpdateData.leadershipPositionId) {
       const leader = await this.leadershipService.findLeadershipPositionById(
-        memberUpdateData.leadershipPositionId,
+        memberUpdateData.leadershipPositionId
       );
       if (!leader) {
         throw new NotFoundException(
-          `Leadership Position with ID ${memberUpdateData.leadershipPositionId} not found`,
+          `Leadership Position with ID ${memberUpdateData.leadershipPositionId} not found`
         );
       }
 
@@ -163,7 +163,7 @@ export class MemberService {
     try {
       return this.memberRepository.count();
     } catch (err) {
-      this.logger.error('Failed to count members', err.stack);
+      this.logger.error("Failed to count members", err.stack);
       return 0;
     }
   }
@@ -174,7 +174,7 @@ export class MemberService {
         where: { gender: Gender.MALE },
       });
     } catch (err) {
-      this.logger.error('Failed to count members', err.stack);
+      this.logger.error("Failed to count members", err.stack);
       return 0;
     }
   }
@@ -185,7 +185,7 @@ export class MemberService {
         where: { gender: Gender.FEMALE },
       });
     } catch (err) {
-      this.logger.error('Failed to count members', err.stack);
+      this.logger.error("Failed to count members", err.stack);
       return 0;
     }
   }
