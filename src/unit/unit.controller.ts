@@ -6,11 +6,12 @@ import {
   Param,
   Post,
   Put,
-} from '@nestjs/common';
-import { UnitService } from './unit.service';
-import { Unit } from 'src/entity/unit.entity';
-import { UpdateUnitDto } from './dto/update_unit.dto';
-import { CreateUnitDto } from './dto/create_unit.dto';
+  Query,
+} from "@nestjs/common";
+import { UnitService } from "./unit.service";
+import { Unit } from "src/entity/unit.entity";
+import { UpdateUnitDto } from "./dto/update_unit.dto";
+import { CreateUnitDto } from "./dto/create_unit.dto";
 
 import {
   ApiTags,
@@ -23,57 +24,127 @@ import {
   ApiCreatedResponse,
   ApiBadRequestResponse,
   ApiBearerAuth,
-} from '@nestjs/swagger';
+  ApiQuery,
+} from "@nestjs/swagger";
 
-@ApiTags('Units')
-@ApiBearerAuth('access-token')
+@ApiTags("Units")
+@ApiBearerAuth("access-token")
 @Controller("units")
 export class UnitController {
   constructor(private readonly unitService: UnitService) {}
 
   @Get()
   @ApiOperation({
-    summary: 'Get all units',
+    summary: "Get paginated list of units with metadata",
     description:
-      'Retrieves a list of all units. Returns message if no units exist.',
+      "Returns a paginated list of units with filtering, sorting.",
+  })
+  @ApiQuery({
+    name: "page",
+    required: false,
+    type: Number,
+    description: "Page number (default: 1)",
+    example: 1,
+  })
+  @ApiQuery({
+    name: "limit",
+    required: false,
+    type: Number,
+    description: "Number of items per page (default: 10)",
+    example: 10,
+  })
+  @ApiQuery({
+    name: "sortBy",
+    required: false,
+    type: String,
+    description: "Field to sort by (id, name, gender)",
+    example: "name",
+  })
+  @ApiQuery({
+    name: "sortOrder",
+    required: false,
+    enum: ["ASC", "DESC"],
+    description: "Sort order (ASC or DESC)",
+    example: "ASC",
   })
   @ApiOkResponse({
-    description: 'List of units retrieved successfully',
-    type: Unit,
-    isArray: true,
+    description: "Paginated list of units with metadata",
+    schema: {
+      type: "object",
+      properties: {
+        data: {
+          type: "array",
+          items: { $ref: "#/components/schemas/Unit" },
+        },
+        meta: {
+          type: "object",
+          properties: {
+            totalPages: { type: "number", example: 100 },
+            currentPage: { type: "number", example: 1 },
+            limit: { type: "number", example: 10 },
+            totalUnits: { type: "number", example: 100 },
+            hasPrev: { type: "boolean", example: "true" },
+            hasNext: { type: "boolean", example: "true" },
+          },
+        },
+      },
+    },
   })
   @ApiResponse({
     status: 200,
-    description: 'No units found',
+    description: "No units found",
     type: String,
   })
-  async findAllUnits(): Promise<Unit[] | string> {
-    const units = await this.unitService.findAll();
-    if (!units.length) {
-      return 'No units found';
+  async findAllUnits(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('sortBy') sortBy: string = "id",
+    @Query('sortOrder') sortOrder: "ASC" | "DESC" = "ASC"
+  ): Promise<
+    | {
+        units: Unit[];
+        meta: {
+          totalPages: number;
+          currentPage: number;
+          limit: number;
+          totalUnits: number;
+          hasPrev: boolean;
+          hasNext: boolean;
+        };
+      }
+    | string
+  > {
+    const unitsData = await this.unitService.findAll(
+      page,
+      limit,
+      sortBy,
+      sortOrder
+    );
+    if (!unitsData.units.length) {
+      return "No units found";
     }
-    return units;
+    return unitsData;
   }
 
-  @Get(':id')
+  @Get(":id")
   @ApiOperation({
-    summary: 'Get unit by ID',
-    description: 'Retrieves a specific unit by its ID',
+    summary: "Get unit by ID",
+    description: "Retrieves a specific unit by its ID",
   })
   @ApiParam({
-    name: 'id',
-    description: 'Unit ID',
+    name: "id",
+    description: "Unit ID",
     type: Number,
     example: 1,
   })
   @ApiOkResponse({
-    description: 'Unit retrieved successfully',
+    description: "Unit retrieved successfully",
     type: Unit,
   })
   @ApiNotFoundResponse({
-    description: 'Unit not found',
+    description: "Unit not found",
   })
-  async findUnit(@Param('id') id: number): Promise<Unit | null> {
+  async findUnit(@Param("id") id: number): Promise<Unit | null> {
     const unit = await this.unitService.findUnitById(id);
     if (!unit) {
       throw new NotFoundException(`Unit with ID ${id} not found`);
@@ -81,54 +152,54 @@ export class UnitController {
     return unit;
   }
 
-  @Post('add-unit')
+  @Post("add-unit")
   @ApiOperation({
-    summary: 'Create a new unit',
-    description: 'Creates a new unit with the provided data',
+    summary: "Create a new unit",
+    description: "Creates a new unit with the provided data",
   })
   @ApiBody({
-    description: 'Unit creation data',
+    description: "Unit creation data",
     type: CreateUnitDto,
   })
   @ApiCreatedResponse({
-    description: 'Unit created successfully',
+    description: "Unit created successfully",
     type: Unit,
   })
   @ApiBadRequestResponse({
-    description: 'Invalid input data',
+    description: "Invalid input data",
   })
   async createUnit(@Body() unitData: CreateUnitDto) {
     return await this.unitService.create(unitData);
   }
 
-  @Put('update-unit/:id')
+  @Put("update-unit/:id")
   @ApiOperation({
-    summary: 'Update a unit',
-    description: 'Updates an existing unit with partial or complete data',
+    summary: "Update a unit",
+    description: "Updates an existing unit with partial or complete data",
   })
   @ApiParam({
-    name: 'id',
-    description: 'Unit ID to update',
+    name: "id",
+    description: "Unit ID to update",
     type: Number,
     example: 1,
   })
   @ApiBody({
-    description: 'Unit update data (partial updates allowed)',
+    description: "Unit update data (partial updates allowed)",
     type: UpdateUnitDto,
   })
   @ApiOkResponse({
-    description: 'Unit updated successfully',
+    description: "Unit updated successfully",
     type: Unit,
   })
   @ApiNotFoundResponse({
-    description: 'Unit not found',
+    description: "Unit not found",
   })
   @ApiBadRequestResponse({
-    description: 'Invalid input data',
+    description: "Invalid input data",
   })
   async updateUnit(
-    @Param('id') id: number,
-    @Body() updateUnitData: Partial<UpdateUnitDto>,
+    @Param("id") id: number,
+    @Body() updateUnitData: Partial<UpdateUnitDto>
   ) {
     return await this.unitService.update(id, updateUnitData);
   }

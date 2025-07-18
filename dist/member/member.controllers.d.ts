@@ -6,10 +6,19 @@ import { MemberMetaData } from "./dto/member_metadata.dto";
 export declare class MemberController {
     private readonly memberService;
     constructor(memberService: MemberService);
-    findAllMembers(): Promise<{
+    findAllMembers(page?: number, limit?: number, sortBy?: string, sortOrder?: "ASC" | "DESC"): Promise<{
         members: Member[];
-        meta: MemberMetaData;
-    } | string>;
+        meta: {
+            totalPages: number;
+            currentPage: number;
+            limit: number;
+            totalMembers: number;
+            totalMaleMembers: number;
+            totalFemaleMembers: number;
+            hasPrev: boolean;
+            hasNext: boolean;
+        };
+    } | string | undefined>;
     findMember(id: number): Promise<Member | null>;
     getMembersStats(): Promise<MemberMetaData>;
     createMember(memberData: CreateMemberDto): Promise<Member>;

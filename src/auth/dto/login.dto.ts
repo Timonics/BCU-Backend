@@ -4,7 +4,7 @@ import { IsEmail, IsString, IsStrongPassword } from 'class-validator';
 export class LoginAdminDto {
   @ApiProperty({
     description: 'Admin email address',
-    example: 'admin@church.org',
+    example: 'biyi9050@gmail.com',
     required: true,
   })
   @IsEmail()

@@ -35,8 +35,9 @@ let LeadershipService = class LeadershipService {
         return this.leadershipRepository
             .createQueryBuilder("leader")
             .leftJoinAndSelect("leader.members", "members")
-            .leftJoinAndSelect("members.band", "band")
-            .leftJoinAndSelect("members.unit", "unit")
+            .leftJoin("members.band", "band")
+            .leftJoin("members.unit", "unit")
+            .loadRelationCountAndMap("leader.membersCount", "leader.members")
             .select(["leader", "band.id", "band.name", "unit.id", "unit.name"])
             .getMany();
     }

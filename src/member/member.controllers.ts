@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from "@nestjs/common";
 import { MemberService } from "./member.service";
 import { Member } from "src/entity/member.entity";
@@ -24,6 +25,7 @@ import {
   ApiNotFoundResponse,
   ApiCreatedResponse,
   ApiBearerAuth,
+  ApiQuery,
 } from "@nestjs/swagger";
 
 @ApiTags("Members")
@@ -33,38 +35,105 @@ export class MemberController {
   constructor(private readonly memberService: MemberService) {}
 
   @Get("")
-  @ApiOperation({ summary: "Get all members with metadata" })
+  @ApiOperation({
+    summary: "Get paginated list of members with metadata",
+    description:
+      "Returns a paginated list of members with filtering, sorting, and metadata capabilities",
+  })
+  @ApiQuery({
+    name: "page",
+    required: false,
+    type: Number,
+    description: "Page number (default: 1)",
+    example: 1,
+  })
+  @ApiQuery({
+    name: "limit",
+    required: false,
+    type: Number,
+    description: "Number of items per page (default: 10)",
+    example: 10,
+  })
+  @ApiQuery({
+    name: "sortBy",
+    required: false,
+    type: String,
+    description: "Field to sort by (id, firstName, lastName, email, gender)",
+    example: "lastName",
+  })
+  @ApiQuery({
+    name: "sortOrder",
+    required: false,
+    enum: ["ASC", "DESC"],
+    description: "Sort order (ASC or DESC)",
+    example: "ASC",
+  })
   @ApiOkResponse({
-    description: "List of members with metadata",
+    description: "Paginated list of members with metadata",
     schema: {
       type: "object",
       properties: {
-        members: {
+        data: {
           type: "array",
           items: { $ref: "#/components/schemas/Member" },
         },
-        meta: { $ref: "#/components/schemas/MemberMetaData" },
+        meta: {
+          type: "object",
+          properties: {
+            totalPages: { type: "number", example: 100 },
+            currentPage: { type: "number", example: 1 },
+            limit: { type: "number", example: 10 },
+            totalMembers: { type: "number", example: 100 },
+            totalMaleMembers: { type: "number", example: 60 },
+            totalFemaleMembers: { type: "number", example: 40 },
+            hasPrev: { type: "boolean", example: "true" },
+            hasNext: { type: "boolean", example: "true" },
+          },
+        },
       },
     },
   })
   @ApiResponse({
     status: 200,
     description: "No members found",
-    type: String,
+    schema: {
+      type: "string",
+      example: "No members found",
+    },
   })
-  async findAllMembers(): Promise<
-    { members: Member[]; meta: MemberMetaData } | string
+  async findAllMembers(
+    @Query("page") page: number = 1,
+    @Query("limit") limit: number = 10,
+    @Query("sortBy") sortBy: string = "id",
+    @Query("sortOrder") sortOrder: "ASC" | "DESC" = "ASC"
+  ): Promise<
+    | {
+        members: Member[];
+        meta: {
+          totalPages: number;
+          currentPage: number;
+          limit: number;
+          totalMembers: number;
+          totalMaleMembers: number;
+          totalFemaleMembers: number;
+          hasPrev: boolean
+          hasNext: boolean
+        };
+      }
+    | string
+    | undefined
   > {
-    const members = await this.memberService.findAll();
-    if (members.length === 0) {
+    const membersData = await this.memberService.findAll(
+      page,
+      limit,
+      sortBy,
+      sortOrder
+    );
+    if (membersData?.members.length === 0) {
       return "No members found";
     }
-    const metaData = await this.memberService.memberMetaData();
 
-    return {
-      members: members,
-      meta: metaData,
-    };
+    return membersData;
   }
 
   @Get(":id")

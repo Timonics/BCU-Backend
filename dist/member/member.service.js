@@ -34,8 +34,8 @@ let MemberService = MemberService_1 = class MemberService {
         this.unitservice = unitservice;
         this.leadershipService = leadershipService;
     }
-    async findAll() {
-        return this.memberRepository
+    async findAll(page = 1, limit = 10, sortBy = "1d", sortOrder = "ASC") {
+        const queryBuilder = this.memberRepository
             .createQueryBuilder("member")
             .leftJoinAndSelect("member.band", "band")
             .leftJoin("band.bandCaptain", "bandCaptain")
@@ -52,8 +52,43 @@ let MemberService = MemberService_1 = class MemberService {
             "unit.id",
             "unit.name",
             "leadershipPosition",
-        ])
-            .getMany();
+        ]);
+        if (sortBy) {
+            const validSorts = [
+                "id",
+                "firstName",
+                "lastName",
+                "email",
+                "gender",
+                "status",
+            ];
+            if (validSorts.includes(sortBy)) {
+                queryBuilder.orderBy(`member.${sortBy}`, sortOrder);
+            }
+            else if (sortBy == "band") {
+                queryBuilder.orderBy(`band.name`, sortOrder);
+            }
+            else if (sortBy == "unit") {
+                queryBuilder.orderBy(`unit.name`, sortOrder);
+            }
+            const data = await queryBuilder
+                .skip((page - 1) * limit)
+                .take(10)
+                .getMany();
+            const totalPages = Math.ceil((await queryBuilder.getCount()) / limit);
+            const membersMetaData = await this.memberMetaData();
+            return {
+                members: data,
+                meta: {
+                    ...membersMetaData,
+                    totalPages,
+                    currentPage: page,
+                    limit,
+                    hasPrev: page < 1,
+                    hasNext: page < totalPages,
+                },
+            };
+        }
     }
     async findOneById(id) {
         return this.memberRepository

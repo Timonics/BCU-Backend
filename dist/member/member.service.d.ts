@@ -13,7 +13,19 @@ export declare class MemberService {
     private readonly leadershipService;
     private readonly logger;
     constructor(memberRepository: Repository<Member>, bandservice: BandService, unitservice: UnitService, leadershipService: LeadershipService);
-    findAll(): Promise<Member[]>;
+    findAll(page?: number, limit?: number, sortBy?: string, sortOrder?: "ASC" | "DESC"): Promise<{
+        members: Member[];
+        meta: {
+            totalPages: number;
+            currentPage: number;
+            limit: number;
+            totalMembers: number;
+            totalMaleMembers: number;
+            totalFemaleMembers: number;
+            hasPrev: boolean;
+            hasNext: boolean;
+        };
+    } | undefined>;
     findOneById(id: number): Promise<Member | null>;
     findOneByEmail(email: string): Promise<Member | null>;
     create(memberData: CreateMemberDto): Promise<Member>;

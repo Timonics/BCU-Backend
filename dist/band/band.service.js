@@ -18,6 +18,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const band_entity_1 = require("../entity/band.entity");
 const typeorm_2 = require("typeorm");
 const member_entity_1 = require("../entity/member.entity");
+const gender_enum_1 = require("../utils/enums/gender.enum");
 let BandService = class BandService {
     bandRepository;
     memberRepository;
@@ -25,21 +26,57 @@ let BandService = class BandService {
         this.bandRepository = bandRepository;
         this.memberRepository = memberRepository;
     }
-    async findAll() {
-        return this.bandRepository
-            .createQueryBuilder('band')
-            .leftJoinAndSelect('band.members', 'members')
-            .leftJoinAndSelect('members.unit', 'unit')
-            .select(['band', 'members', 'unit.id', 'unit.name'])
+    async findAll(page = 1, limit = 10, sortBy = "id", sortOrder = "ASC") {
+        let totalBands;
+        let totalFemaleBands;
+        let totalMaleBands;
+        try {
+            [totalBands, totalFemaleBands, totalMaleBands] = await Promise.all([
+                this.bandRepository.count(),
+                this.bandRepository.count({ where: { gender: gender_enum_1.Gender.FEMALE } }),
+                this.bandRepository.count({ where: { gender: gender_enum_1.Gender.MALE } }),
+            ]);
+        }
+        catch (error) {
+            throw new common_1.InternalServerErrorException("Failed to get band counts");
+        }
+        const totalPages = Math.ceil(totalBands / limit);
+        const baseQuery = this.bandRepository
+            .createQueryBuilder("band")
+            .leftJoinAndSelect("band.members", "members")
+            .leftJoinAndSelect("members.unit", "unit")
+            .select(["band", "members", "unit.id", "unit.name"]);
+        if (sortOrder) {
+            const validSorts = ["id", "gender", "name"];
+            if (validSorts.includes(sortBy)) {
+                baseQuery.orderBy(`band.${sortBy}`, sortOrder);
+            }
+        }
+        const data = await baseQuery
+            .skip((page - 1) * limit)
+            .take(10)
             .getMany();
+        return {
+            bands: data,
+            meta: {
+                totalPages,
+                currentPage: page,
+                limit,
+                totalBands,
+                totalFemaleBands,
+                totalMaleBands,
+                hasPrev: page > 1,
+                hasNext: page < totalPages,
+            },
+        };
     }
     async findBandById(id) {
         return this.bandRepository
-            .createQueryBuilder('band')
-            .where('band.id = :id', { id })
-            .leftJoinAndSelect('band.members', 'members')
-            .leftJoinAndSelect('members.unit', 'unit')
-            .select(['band', 'members', 'unit.id', 'unit.name'])
+            .createQueryBuilder("band")
+            .where("band.id = :id", { id })
+            .leftJoinAndSelect("band.members", "members")
+            .leftJoinAndSelect("members.unit", "unit")
+            .select(["band", "members", "unit.id", "unit.name"])
             .getOne();
     }
     async create(bandData) {

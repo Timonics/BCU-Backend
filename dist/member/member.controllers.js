@@ -25,16 +25,12 @@ let MemberController = class MemberController {
     constructor(memberService) {
         this.memberService = memberService;
     }
-    async findAllMembers() {
-        const members = await this.memberService.findAll();
-        if (members.length === 0) {
+    async findAllMembers(page = 1, limit = 10, sortBy = "id", sortOrder = "ASC") {
+        const membersData = await this.memberService.findAll(page, limit, sortBy, sortOrder);
+        if (membersData?.members.length === 0) {
             return "No members found";
         }
-        const metaData = await this.memberService.memberMetaData();
-        return {
-            members: members,
-            meta: metaData,
-        };
+        return membersData;
     }
     async findMember(id) {
         const member = await this.memberService.findOneById(id);
@@ -61,27 +57,77 @@ let MemberController = class MemberController {
 exports.MemberController = MemberController;
 __decorate([
     (0, common_1.Get)(""),
-    (0, swagger_1.ApiOperation)({ summary: "Get all members with metadata" }),
+    (0, swagger_1.ApiOperation)({
+        summary: "Get paginated list of members with metadata",
+        description: "Returns a paginated list of members with filtering, sorting, and metadata capabilities",
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: "page",
+        required: false,
+        type: Number,
+        description: "Page number (default: 1)",
+        example: 1,
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: "limit",
+        required: false,
+        type: Number,
+        description: "Number of items per page (default: 10)",
+        example: 10,
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: "sortBy",
+        required: false,
+        type: String,
+        description: "Field to sort by (id, firstName, lastName, email, gender)",
+        example: "lastName",
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: "sortOrder",
+        required: false,
+        enum: ["ASC", "DESC"],
+        description: "Sort order (ASC or DESC)",
+        example: "ASC",
+    }),
     (0, swagger_1.ApiOkResponse)({
-        description: "List of members with metadata",
+        description: "Paginated list of members with metadata",
         schema: {
             type: "object",
             properties: {
-                members: {
+                data: {
                     type: "array",
                     items: { $ref: "#/components/schemas/Member" },
                 },
-                meta: { $ref: "#/components/schemas/MemberMetaData" },
+                meta: {
+                    type: "object",
+                    properties: {
+                        totalPages: { type: "number", example: 100 },
+                        currentPage: { type: "number", example: 1 },
+                        limit: { type: "number", example: 10 },
+                        totalMembers: { type: "number", example: 100 },
+                        totalMaleMembers: { type: "number", example: 60 },
+                        totalFemaleMembers: { type: "number", example: 40 },
+                        hasPrev: { type: "boolean", example: "true" },
+                        hasNext: { type: "boolean", example: "true" },
+                    },
+                },
             },
         },
     }),
     (0, swagger_1.ApiResponse)({
         status: 200,
         description: "No members found",
-        type: String,
+        schema: {
+            type: "string",
+            example: "No members found",
+        },
     }),
+    __param(0, (0, common_1.Query)("page")),
+    __param(1, (0, common_1.Query)("limit")),
+    __param(2, (0, common_1.Query)("sortBy")),
+    __param(3, (0, common_1.Query)("sortOrder")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number, Number, String, String]),
     __metadata("design:returntype", Promise)
 ], MemberController.prototype, "findAllMembers", null);
 __decorate([

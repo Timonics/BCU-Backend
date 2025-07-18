@@ -25,21 +25,43 @@ let UnitService = class UnitService {
         this.unitRepository = unitRepository;
         this.memberRepository = memberRepository;
     }
-    async findAll() {
-        return this.unitRepository
-            .createQueryBuilder('unit')
-            .leftJoinAndSelect('unit.unitHead', 'unitHead')
-            .leftJoinAndSelect('unitHead.band', 'band')
-            .select(['unit', 'unitHead', 'band.id', 'band.name'])
+    async findAll(page = 1, limit = 10, sortBy = "id", sortOrder = "ASC") {
+        const queryBuilder = this.unitRepository
+            .createQueryBuilder("unit")
+            .leftJoinAndSelect("unit.unitHead", "unitHead")
+            .leftJoinAndSelect("unitHead.band", "band")
+            .select(["unit", "unitHead", "band.id", "band.name"]);
+        if (sortOrder) {
+            const validSorts = ["id", "gender", "name"];
+            if (validSorts.includes(sortBy)) {
+                queryBuilder.orderBy(`band.${sortBy}`, sortOrder);
+            }
+        }
+        const totalUnits = await this.unitRepository.count();
+        const totalPages = Math.ceil(totalUnits / limit);
+        const data = await queryBuilder
+            .skip((page - 1) * limit)
+            .take(limit)
             .getMany();
+        return {
+            units: data,
+            meta: {
+                totalPages,
+                currentPage: page,
+                limit,
+                totalUnits,
+                hasPrev: page < 1,
+                hasNext: page < totalPages,
+            },
+        };
     }
     async findUnitById(id) {
         return this.unitRepository
-            .createQueryBuilder('unit')
-            .where('unit.id = :id', { id })
-            .leftJoinAndSelect('unit.unitHead', 'unitHead')
-            .leftJoinAndSelect('unitHead.band', 'band')
-            .select(['unit', 'unitHead', 'band.id', 'band.name'])
+            .createQueryBuilder("unit")
+            .where("unit.id = :id", { id })
+            .leftJoinAndSelect("unit.unitHead", "unitHead")
+            .leftJoinAndSelect("unitHead.band", "band")
+            .select(["unit", "unitHead", "band.id", "band.name"])
             .getOne();
     }
     async create(unitData) {

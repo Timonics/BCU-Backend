@@ -24,12 +24,12 @@ let BandController = class BandController {
     constructor(bandService) {
         this.bandService = bandService;
     }
-    async findAllBands() {
-        const bands = await this.bandService.findAll();
-        if (!bands.length) {
-            return 'No bands found';
+    async findAllBands(page = 1, limit = 10, sortBy = "id", sortOrder = "ASC") {
+        const bandsData = await this.bandService.findAll(page, limit, sortBy, sortOrder);
+        if (!bandsData.bands.length) {
+            return "No bands found";
         }
-        return bands;
+        return bandsData;
     }
     async findBand(id) {
         const band = await this.bandService.findBandById(id);
@@ -49,86 +49,138 @@ exports.BandController = BandController;
 __decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({
-        summary: 'Get all bands',
-        description: 'Retrieves a list of all bands. Returns empty message if no bands exist.',
+        summary: "Get paginated list of bands with metadata",
+        description: "Returns a paginated list of bands with filtering, sorting",
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: "page",
+        required: false,
+        type: Number,
+        description: "Page number (default: 1)",
+        example: 1,
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: "limit",
+        required: false,
+        type: Number,
+        description: "Number of items per page (default: 10)",
+        example: 10,
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: "sortBy",
+        required: false,
+        type: String,
+        description: "Field to sort by (id, name, gender)",
+        example: "name",
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: "sortOrder",
+        required: false,
+        enum: ["ASC", "DESC"],
+        description: "Sort order (ASC or DESC)",
+        example: "ASC",
     }),
     (0, swagger_1.ApiOkResponse)({
-        description: 'List of bands retrieved successfully',
-        type: band_entity_1.Band,
-        isArray: true,
+        description: "Paginated list of bands with metadata",
+        schema: {
+            type: "object",
+            properties: {
+                data: {
+                    type: "array",
+                    items: { $ref: "#/components/schemas/Band" },
+                },
+                meta: {
+                    type: "object",
+                    properties: {
+                        totalPages: { type: "number", example: 100 },
+                        currentPage: { type: "number", example: 1 },
+                        limit: { type: "number", example: 10 },
+                        totalMembers: { type: "number", example: 100 },
+                        totalMaleMembers: { type: "number", example: 60 },
+                        totalFemaleMembers: { type: "number", example: 40 },
+                        hasPrev: { type: "boolean", example: "true" },
+                        hasNext: { type: "boolean", example: "true" },
+                    },
+                },
+            },
+        },
     }),
     (0, swagger_1.ApiResponse)({
         status: 200,
-        description: 'No bands found',
+        description: "No bands found",
         type: String,
     }),
+    __param(0, (0, common_1.Query)("page")),
+    __param(1, (0, common_1.Query)("limit")),
+    __param(2, (0, common_1.Query)("sortBy")),
+    __param(3, (0, common_1.Query)("sortOrder")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number, Number, String, String]),
     __metadata("design:returntype", Promise)
 ], BandController.prototype, "findAllBands", null);
 __decorate([
-    (0, common_1.Get)(':id'),
+    (0, common_1.Get)(":id"),
     (0, swagger_1.ApiOperation)({
-        summary: 'Get band by ID',
-        description: 'Retrieves a specific band by its ID',
+        summary: "Get band by ID",
+        description: "Retrieves a specific band by its ID",
     }),
-    (0, swagger_1.ApiParam)({ name: 'id', description: 'Band ID', type: Number }),
+    (0, swagger_1.ApiParam)({ name: "id", description: "Band ID", type: Number }),
     (0, swagger_1.ApiOkResponse)({
-        description: 'Band retrieved successfully',
+        description: "Band retrieved successfully",
         type: band_entity_1.Band,
     }),
-    (0, swagger_1.ApiNotFoundResponse)({ description: 'Band not found' }),
-    __param(0, (0, common_1.Param)('id')),
+    (0, swagger_1.ApiNotFoundResponse)({ description: "Band not found" }),
+    __param(0, (0, common_1.Param)("id")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], BandController.prototype, "findBand", null);
 __decorate([
-    (0, common_1.Post)('add-band'),
+    (0, common_1.Post)("add-band"),
     (0, swagger_1.ApiOperation)({
-        summary: 'Create a new band',
-        description: 'Creates a new band with the provided data',
+        summary: "Create a new band",
+        description: "Creates a new band with the provided data",
     }),
     (0, swagger_1.ApiBody)({
-        description: 'Band creation data',
+        description: "Band creation data",
         type: create_band_dto_1.CreateBandDto,
     }),
     (0, swagger_1.ApiCreatedResponse)({
-        description: 'Band created successfully',
+        description: "Band created successfully",
         type: band_entity_1.Band,
     }),
-    (0, swagger_1.ApiBadRequestResponse)({ description: 'Invalid input data' }),
+    (0, swagger_1.ApiBadRequestResponse)({ description: "Invalid input data" }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_band_dto_1.CreateBandDto]),
     __metadata("design:returntype", Promise)
 ], BandController.prototype, "createBand", null);
 __decorate([
-    (0, common_1.Put)('update-band/:id'),
+    (0, common_1.Put)("update-band/:id"),
     (0, swagger_1.ApiOperation)({
-        summary: 'Update a band',
-        description: 'Updates an existing band with partial or complete data',
+        summary: "Update a band",
+        description: "Updates an existing band with partial or complete data",
     }),
-    (0, swagger_1.ApiParam)({ name: 'id', description: 'Band ID to update', type: Number }),
+    (0, swagger_1.ApiParam)({ name: "id", description: "Band ID to update", type: Number }),
     (0, swagger_1.ApiBody)({
-        description: 'Band update data (partial allowed)',
+        description: "Band update data (partial allowed)",
         type: update_band_dto_1.UpdateBandDto,
     }),
     (0, swagger_1.ApiOkResponse)({
-        description: 'Band updated successfully',
+        description: "Band updated successfully",
         type: band_entity_1.Band,
     }),
-    (0, swagger_1.ApiNotFoundResponse)({ description: 'Band not found' }),
-    (0, swagger_1.ApiBadRequestResponse)({ description: 'Invalid input data' }),
-    __param(0, (0, common_1.Param)('id')),
+    (0, swagger_1.ApiNotFoundResponse)({ description: "Band not found" }),
+    (0, swagger_1.ApiBadRequestResponse)({ description: "Invalid input data" }),
+    __param(0, (0, common_1.Param)("id")),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], BandController.prototype, "updateBand", null);
 exports.BandController = BandController = __decorate([
-    (0, swagger_1.ApiTags)('Bands'),
-    (0, swagger_1.ApiBearerAuth)('access-token'),
+    (0, swagger_1.ApiTags)("Bands"),
+    (0, swagger_1.ApiBearerAuth)("access-token"),
     (0, common_1.Controller)("bands"),
     __metadata("design:paramtypes", [band_service_1.BandService])
 ], BandController);

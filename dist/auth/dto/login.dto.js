@@ -20,7 +20,7 @@ exports.LoginAdminDto = LoginAdminDto;
 __decorate([
     (0, swagger_1.ApiProperty)({
         description: 'Admin email address',
-        example: 'admin@church.org',
+        example: 'biyi9050@gmail.com',
         required: true,
     }),
     (0, class_validator_1.IsEmail)(),
