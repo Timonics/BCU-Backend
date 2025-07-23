@@ -14,6 +14,7 @@ export declare class UnitService {
             currentPage: number;
             limit: number;
             totalUnits: number;
+            totalUnitLeaders: number;
             hasPrev: boolean;
             hasNext: boolean;
         };

@@ -1,7 +1,11 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  Injectable,
+  NotAcceptableException,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Unit } from "src/entity/unit.entity";
-import { Repository } from "typeorm";
+import { Not, Repository } from "typeorm";
 import { CreateUnitDto } from "./dto/create_unit.dto";
 import { Member } from "src/entity/member.entity";
 import { UpdateUnitDto } from "./dto/update_unit.dto";
@@ -28,6 +32,7 @@ export class UnitService {
       currentPage: number;
       limit: number;
       totalUnits: number;
+      totalUnitLeaders: number;
       hasPrev: boolean;
       hasNext: boolean;
     };
@@ -36,7 +41,8 @@ export class UnitService {
       .createQueryBuilder("unit")
       .leftJoinAndSelect("unit.unitHead", "unitHead")
       .leftJoinAndSelect("unitHead.band", "band")
-      .select(["unit", "unitHead", "band.id", "band.name"]);
+      .leftJoinAndSelect("unit.members", "members")
+      .select(["unit", "unitHead", "band.id", "band.name", "members"]);
 
     if (sortOrder) {
       const validSorts = ["id", "gender", "name"];
@@ -46,6 +52,11 @@ export class UnitService {
       }
     }
 
+    const totalUnitLeaders = await this.unitRepository.count({
+      where: {
+        unitHead: Not(null),
+      },
+    });
     const totalUnits = await this.unitRepository.count();
     const totalPages = Math.ceil(totalUnits / limit);
 
@@ -61,6 +72,7 @@ export class UnitService {
         currentPage: page,
         limit,
         totalUnits,
+        totalUnitLeaders,
         hasPrev: page < 1,
         hasNext: page < totalPages,
       },
@@ -73,7 +85,8 @@ export class UnitService {
       .where("unit.id = :id", { id })
       .leftJoinAndSelect("unit.unitHead", "unitHead")
       .leftJoinAndSelect("unitHead.band", "band")
-      .select(["unit", "unitHead", "band.id", "band.name"])
+      .leftJoinAndSelect("unit.members", "members")
+      .select(["unit", "unitHead", "band.id", "band.name", "members"])
       .getOne();
   }
 
@@ -88,7 +101,7 @@ export class UnitService {
       });
       if (!unitHead)
         throw new NotFoundException(
-          `Unit with ID ${unitData.unitHeadId} not found`
+          `Member with ID ${unitData.unitHeadId} not found`
         );
       unit.unitHead = unitHead;
     }
@@ -97,7 +110,7 @@ export class UnitService {
   }
 
   async update(unitId: number, unitUpdateData: Partial<UpdateUnitDto>) {
-    let unitExists = await this.unitRepository.findOne({
+    const unitExists = await this.unitRepository.findOne({
       where: { id: unitId },
     });
 
@@ -106,13 +119,20 @@ export class UnitService {
     }
 
     if (unitUpdateData.unitHeadId) {
-      const unitCaptain = await this.memberRepository.findOne({
+      let unitCaptain = await this.memberRepository.findOne({
         where: { id: unitUpdateData.unitHeadId },
       });
       if (!unitCaptain)
         throw new NotFoundException(
-          `Unit with ID ${unitUpdateData.unitHeadId} not found`
+          `Member with ID ${unitUpdateData.unitHeadId} not found`
         );
+      if (unitCaptain.unit?.id !== unitId && unitCaptain.unit)
+        throw new NotAcceptableException(
+          `Member with ID ${unitUpdateData.unitHeadId} can't be assigned this unit's head, update member's details first`
+        );
+      if (!unitCaptain.unit) {
+        this.memberRepository.update(unitCaptain.id, { unit: unitExists });
+      }
       unitExists.unitHead = unitCaptain;
     }
 

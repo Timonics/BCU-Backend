@@ -17,7 +17,7 @@ export class LeadershipPosition {
     example: LeadershipType.CAPTAIN,
     description: "Leadership type",
   })
-  @Column({ type: "enum", enum: LeadershipType })
+  @Column({ type: "enum", enum: LeadershipType, unique: true })
   type: LeadershipType;
 
   @ApiProperty({

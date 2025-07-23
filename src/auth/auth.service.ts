@@ -5,6 +5,11 @@ import { compareSync, hashSync } from "bcrypt";
 import { AdminService } from "src/admin/admin.service";
 import { Admin } from "src/entity/admin.entity";
 import { EmailService } from "src/email/email.service";
+import * as dotenv from "dotenv";
+
+dotenv.config();
+
+const isProduction = process.env.NODE_ENV === "production";
 
 @Injectable()
 export class AuthService {
@@ -20,7 +25,7 @@ export class AuthService {
 
     const isPasswordValid = compareSync(password, validatedAdmin.password);
 
-    if (!validatedAdmin.isVerified) {
+    if (!validatedAdmin.isVerified && isProduction) {
       throw new UnauthorizedException("Please verify your email first");
     }
 
@@ -50,7 +55,8 @@ export class AuthService {
       password: hashSync(adminData.password!, 10),
     });
 
-    await this.emailVerifyService.sendVerificationLink(newAdmin.email);
+    isProduction &&
+      (await this.emailVerifyService.sendVerificationLink(newAdmin.email));
 
     const { password, ...result } = newAdmin;
     return {

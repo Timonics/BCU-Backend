@@ -15,6 +15,9 @@ const jwt_1 = require("@nestjs/jwt");
 const bcrypt_1 = require("bcrypt");
 const admin_service_1 = require("../admin/admin.service");
 const email_service_1 = require("../email/email.service");
+const dotenv = require("dotenv");
+dotenv.config();
+const isProduction = process.env.NODE_ENV === "production";
 let AuthService = class AuthService {
     jwtService;
     adminService;
@@ -29,7 +32,7 @@ let AuthService = class AuthService {
         if (!validatedAdmin)
             return undefined;
         const isPasswordValid = (0, bcrypt_1.compareSync)(password, validatedAdmin.password);
-        if (!validatedAdmin.isVerified) {
+        if (!validatedAdmin.isVerified && isProduction) {
             throw new common_1.UnauthorizedException("Please verify your email first");
         }
         if (validatedAdmin && isPasswordValid) {
@@ -52,7 +55,8 @@ let AuthService = class AuthService {
             ...adminData,
             password: (0, bcrypt_1.hashSync)(adminData.password, 10),
         });
-        await this.emailVerifyService.sendVerificationLink(newAdmin.email);
+        isProduction &&
+            (await this.emailVerifyService.sendVerificationLink(newAdmin.email));
         const { password, ...result } = newAdmin;
         return {
             ...result,

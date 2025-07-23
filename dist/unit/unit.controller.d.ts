@@ -12,6 +12,7 @@ export declare class UnitController {
             currentPage: number;
             limit: number;
             totalUnits: number;
+            totalUnitLeaders: number;
             hasPrev: boolean;
             hasNext: boolean;
         };

@@ -14,6 +14,7 @@ export declare class BandController {
             totalBands: number;
             totalFemaleBands: number;
             totalMaleBands: number;
+            totalBandLeaders: number;
             hasPrev: boolean;
             hasNext: boolean;
         };

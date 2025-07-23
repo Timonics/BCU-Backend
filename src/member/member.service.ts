@@ -1,7 +1,12 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  NotAcceptableException,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Member } from "src/entity/member.entity";
-import { Repository } from "typeorm";
+import { Not, Repository } from "typeorm";
 import { CreateMemberDto } from "./dto/create_member.dto";
 import { BandService } from "src/band/band.service";
 import { UnitService } from "src/unit/unit.service";
@@ -82,7 +87,7 @@ export class MemberService {
 
       const data = await queryBuilder
         .skip((page - 1) * limit)
-        .take(10)
+        .take(limit)
         .getMany();
 
       const totalPages = Math.ceil((await queryBuilder.getCount()) / limit);
@@ -95,7 +100,7 @@ export class MemberService {
           totalPages,
           currentPage: page,
           limit,
-          hasPrev: page < 1,
+          hasPrev: page > 1,
           hasNext: page < totalPages,
         },
       };
@@ -159,7 +164,10 @@ export class MemberService {
     id: number,
     memberUpdateData: Partial<UpdateMemberDto>
   ): Promise<Member> {
-    let memberExists = await this.memberRepository.findOne({ where: { id } });
+    const memberExists = await this.memberRepository.findOne({
+      where: { id },
+      relations: ["band", "band.members", "leadershipPosition", "unit"],
+    });
 
     if (!memberExists) {
       throw new NotFoundException(`Member with ID ${id} not found`);
@@ -171,8 +179,37 @@ export class MemberService {
         throw new NotFoundException(
           `Band with ID ${memberUpdateData.bandId} not found`
         );
-
       memberExists.band = band;
+    }
+
+    if (memberUpdateData.leadershipPositionId) {
+      const leader =
+        memberUpdateData.leadershipPositionId == 0
+          ? null
+          : await this.leadershipService.findLeadershipPositionById(
+              memberUpdateData.leadershipPositionId
+            );
+      if (!leader) {
+        throw new NotFoundException(
+          `Leadership Position with ID ${memberUpdateData.leadershipPositionId} not found`
+        );
+      }
+
+      const existingLeader = await this.memberRepository.findOne({
+        where: {
+          band: { id: memberExists.band?.id },
+          leadershipPosition: { id: memberUpdateData.leadershipPositionId },
+          id: Not(id),
+        },
+      });
+
+      if (existingLeader) {
+        throw new NotAcceptableException(
+          "This leadership position is already assigned to another member in the band"
+        );
+      }
+
+      memberExists.leadershipPosition = leader;
     }
 
     if (memberUpdateData.unitId) {
@@ -181,33 +218,16 @@ export class MemberService {
         throw new NotFoundException(
           `Unit with ID ${memberUpdateData.unitId} not found`
         );
-
       memberExists.unit = unit;
     }
 
-    if (memberUpdateData.leadershipPositionId) {
-      const leader = await this.leadershipService.findLeadershipPositionById(
-        memberUpdateData.leadershipPositionId
-      );
-      if (!leader) {
-        throw new NotFoundException(
-          `Leadership Position with ID ${memberUpdateData.leadershipPositionId} not found`
-        );
+    Object.assign(memberExists, memberUpdateData);
+
+    return this.memberRepository.manager.transaction(
+      async (transactionalEntityManager) => {
+        return await transactionalEntityManager.save(memberExists);
       }
-
-      memberExists.leadershipPosition = leader;
-    }
-
-    Object.keys(memberUpdateData).forEach((key) => {
-      if (
-        memberUpdateData[key] !== undefined &&
-        memberUpdateData[key] !== null
-      ) {
-        memberExists[key] = memberUpdateData[key];
-      }
-    });
-
-    return this.memberRepository.save(memberExists);
+    );
   }
 
   async delete(memberId: number) {

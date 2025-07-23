@@ -36,8 +36,7 @@ export class UnitController {
   @Get()
   @ApiOperation({
     summary: "Get paginated list of units with metadata",
-    description:
-      "Returns a paginated list of units with filtering, sorting.",
+    description: "Returns a paginated list of units with filtering, sorting.",
   })
   @ApiQuery({
     name: "page",
@@ -83,6 +82,7 @@ export class UnitController {
             currentPage: { type: "number", example: 1 },
             limit: { type: "number", example: 10 },
             totalUnits: { type: "number", example: 100 },
+            totalUnitLeaders: { type: "number", example: 100 },
             hasPrev: { type: "boolean", example: "true" },
             hasNext: { type: "boolean", example: "true" },
           },
@@ -96,10 +96,10 @@ export class UnitController {
     type: String,
   })
   async findAllUnits(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-    @Query('sortBy') sortBy: string = "id",
-    @Query('sortOrder') sortOrder: "ASC" | "DESC" = "ASC"
+    @Query("page") page: number = 1,
+    @Query("limit") limit: number = 10,
+    @Query("sortBy") sortBy: string = "id",
+    @Query("sortOrder") sortOrder: "ASC" | "DESC" = "ASC"
   ): Promise<
     | {
         units: Unit[];
@@ -108,6 +108,7 @@ export class UnitController {
           currentPage: number;
           limit: number;
           totalUnits: number;
+          totalUnitLeaders: number;
           hasPrev: boolean;
           hasNext: boolean;
         };

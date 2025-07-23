@@ -83,6 +83,7 @@ export class BandController {
             totalMembers: { type: "number", example: 100 },
             totalMaleMembers: { type: "number", example: 60 },
             totalFemaleMembers: { type: "number", example: 40 },
+            totalBandLeaders: { type: "number", example: 40 },
             hasPrev: { type: "boolean", example: "true" },
             hasNext: { type: "boolean", example: "true" },
           },
@@ -110,6 +111,7 @@ export class BandController {
           totalBands: number;
           totalFemaleBands: number;
           totalMaleBands: number;
+          totalBandLeaders: number;
           hasPrev: boolean;
           hasNext: boolean;
         };

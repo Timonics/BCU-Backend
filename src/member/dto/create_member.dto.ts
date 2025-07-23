@@ -131,7 +131,7 @@ export class CreateMemberDto {
   @ApiPropertyOptional({
     description: "Member's status (converted to lowercase)",
     enum: MemberStatus,
-    example: 'active',
+    example: 'pending',
   })
   @IsOptional()
   @Transform(({ value }: { value: string }) => value.toLowerCase())
@@ -276,7 +276,7 @@ export class CreateMemberDto {
 
   @ApiPropertyOptional({
     description: 'ID of the band member belongs to',
-    example: 1,
+    example: 0,
     type: Number,
   })
   @IsOptional()
@@ -285,7 +285,7 @@ export class CreateMemberDto {
 
   @ApiPropertyOptional({
     description: 'ID of the unit member belongs to',
-    example: 2,
+    example: 0,
     type: Number,
   })
   @IsOptional()
@@ -294,7 +294,7 @@ export class CreateMemberDto {
 
   @ApiPropertyOptional({
     description: 'ID of the band captain',
-    example: 3,
+    example: 0,
     type: Number,
   })
   @IsOptional()
@@ -303,7 +303,7 @@ export class CreateMemberDto {
 
   @ApiPropertyOptional({
     description: 'ID of the leadership position',
-    example: 4,
+    example: 0,
     type: Number,
   })
   @IsOptional()

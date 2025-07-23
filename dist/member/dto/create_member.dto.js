@@ -186,7 +186,7 @@ __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: "Member's status (converted to lowercase)",
         enum: status_enum_1.MemberStatus,
-        example: 'active',
+        example: 'pending',
     }),
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Transform)(({ value }) => value.toLowerCase()),
@@ -349,7 +349,7 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: 'ID of the band member belongs to',
-        example: 1,
+        example: 0,
         type: Number,
     }),
     (0, class_validator_1.IsOptional)(),
@@ -359,7 +359,7 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: 'ID of the unit member belongs to',
-        example: 2,
+        example: 0,
         type: Number,
     }),
     (0, class_validator_1.IsOptional)(),
@@ -369,7 +369,7 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: 'ID of the band captain',
-        example: 3,
+        example: 0,
         type: Number,
     }),
     (0, class_validator_1.IsOptional)(),
@@ -379,7 +379,7 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: 'ID of the leadership position',
-        example: 4,
+        example: 0,
         type: Number,
     }),
     (0, class_validator_1.IsOptional)(),

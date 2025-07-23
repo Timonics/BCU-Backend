@@ -36,6 +36,7 @@ export class BandService {
       totalBands: number;
       totalFemaleBands: number;
       totalMaleBands: number;
+      totalBandLeaders: number;
       hasPrev: boolean;
       hasNext: boolean;
     };
@@ -43,6 +44,7 @@ export class BandService {
     let totalBands: number;
     let totalFemaleBands: number;
     let totalMaleBands: number;
+    let totalBandLeaders: number = 0;
 
     try {
       [totalBands, totalFemaleBands, totalMaleBands] = await Promise.all([
@@ -54,13 +56,36 @@ export class BandService {
       throw new InternalServerErrorException("Failed to get band counts");
     }
 
+    const bandsQuery = await this.bandRepository
+      .createQueryBuilder("bands")
+      .leftJoinAndSelect("bands.members", "members")
+      .getMany();
+
+    const bandsWithMembers = bandsQuery.filter((band) => band.members.length);
+
+    bandsWithMembers.forEach((band) => {
+      const bandLeadersArr = band.members.filter(
+        (member) => member.leadershipPosition !== null
+      );
+      totalBandLeaders = totalBandLeaders + bandLeadersArr.length;
+    });
+
     const totalPages = Math.ceil(totalBands / limit);
 
     const baseQuery = this.bandRepository
       .createQueryBuilder("band")
       .leftJoinAndSelect("band.members", "members")
       .leftJoinAndSelect("members.unit", "unit")
-      .select(["band", "members", "unit.id", "unit.name"]);
+      .leftJoinAndSelect("members.leadershipPosition", "leadershipPosition")
+      .select([
+        "band",
+        "members",
+        "unit.id",
+        "unit.name",
+        "leadershipPosition.id",
+        "leadershipPosition.type",
+        "leadershipPosition.appointedAt",
+      ]);
 
     if (sortOrder) {
       const validSorts = ["id", "gender", "name"];
@@ -72,7 +97,7 @@ export class BandService {
 
     const data = await baseQuery
       .skip((page - 1) * limit)
-      .take(10)
+      .take(limit)
       .getMany();
 
     return {
@@ -84,6 +109,7 @@ export class BandService {
         totalBands,
         totalFemaleBands,
         totalMaleBands,
+        totalBandLeaders,
         hasPrev: page > 1,
         hasNext: page < totalPages,
       },
@@ -96,7 +122,16 @@ export class BandService {
       .where("band.id = :id", { id })
       .leftJoinAndSelect("band.members", "members")
       .leftJoinAndSelect("members.unit", "unit")
-      .select(["band", "members", "unit.id", "unit.name"])
+      .leftJoinAndSelect("members.leadershipPosition", "leadershipPosition")
+      .select([
+        "band",
+        "members",
+        "unit.id",
+        "unit.name",
+        "leadershipPosition.id",
+        "leadershipPosition.type",
+        "leadershipPosition.appointedAt",
+      ])
       .getOne();
   }
 

@@ -10,6 +10,6 @@ export class CreateLeadershipDto {
     default: LeadershipType.CAPTAIN,
   })
   @Transform(({ value }: { value: string }) => value.toLowerCase())
-  @IsEnum(LeadershipType, { message: 'Position can not be empty' })
+  @IsEnum(LeadershipType, { message: 'Position can not be empty'} )
   type: LeadershipType;
 }

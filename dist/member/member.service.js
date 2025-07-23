@@ -73,7 +73,7 @@ let MemberService = MemberService_1 = class MemberService {
             }
             const data = await queryBuilder
                 .skip((page - 1) * limit)
-                .take(10)
+                .take(limit)
                 .getMany();
             const totalPages = Math.ceil((await queryBuilder.getCount()) / limit);
             const membersMetaData = await this.memberMetaData();
@@ -84,7 +84,7 @@ let MemberService = MemberService_1 = class MemberService {
                     totalPages,
                     currentPage: page,
                     limit,
-                    hasPrev: page < 1,
+                    hasPrev: page > 1,
                     hasNext: page < totalPages,
                 },
             };
@@ -126,7 +126,10 @@ let MemberService = MemberService_1 = class MemberService {
         return this.memberRepository.save(member);
     }
     async update(id, memberUpdateData) {
-        let memberExists = await this.memberRepository.findOne({ where: { id } });
+        const memberExists = await this.memberRepository.findOne({
+            where: { id },
+            relations: ["band", "band.members", "leadershipPosition", "unit"],
+        });
         if (!memberExists) {
             throw new common_1.NotFoundException(`Member with ID ${id} not found`);
         }
@@ -136,26 +139,35 @@ let MemberService = MemberService_1 = class MemberService {
                 throw new common_1.NotFoundException(`Band with ID ${memberUpdateData.bandId} not found`);
             memberExists.band = band;
         }
+        if (memberUpdateData.leadershipPositionId) {
+            const leader = memberUpdateData.leadershipPositionId == 0
+                ? null
+                : await this.leadershipService.findLeadershipPositionById(memberUpdateData.leadershipPositionId);
+            if (!leader) {
+                throw new common_1.NotFoundException(`Leadership Position with ID ${memberUpdateData.leadershipPositionId} not found`);
+            }
+            const existingLeader = await this.memberRepository.findOne({
+                where: {
+                    band: { id: memberExists.band?.id },
+                    leadershipPosition: { id: memberUpdateData.leadershipPositionId },
+                    id: (0, typeorm_2.Not)(id),
+                },
+            });
+            if (existingLeader) {
+                throw new common_1.NotAcceptableException("This leadership position is already assigned to another member in the band");
+            }
+            memberExists.leadershipPosition = leader;
+        }
         if (memberUpdateData.unitId) {
             const unit = await this.unitservice.findUnitById(memberUpdateData.unitId);
             if (!unit)
                 throw new common_1.NotFoundException(`Unit with ID ${memberUpdateData.unitId} not found`);
             memberExists.unit = unit;
         }
-        if (memberUpdateData.leadershipPositionId) {
-            const leader = await this.leadershipService.findLeadershipPositionById(memberUpdateData.leadershipPositionId);
-            if (!leader) {
-                throw new common_1.NotFoundException(`Leadership Position with ID ${memberUpdateData.leadershipPositionId} not found`);
-            }
-            memberExists.leadershipPosition = leader;
-        }
-        Object.keys(memberUpdateData).forEach((key) => {
-            if (memberUpdateData[key] !== undefined &&
-                memberUpdateData[key] !== null) {
-                memberExists[key] = memberUpdateData[key];
-            }
+        Object.assign(memberExists, memberUpdateData);
+        return this.memberRepository.manager.transaction(async (transactionalEntityManager) => {
+            return await transactionalEntityManager.save(memberExists);
         });
-        return this.memberRepository.save(memberExists);
     }
     async delete(memberId) {
         const result = await this.memberRepository.delete(memberId);

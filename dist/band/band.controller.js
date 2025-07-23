@@ -98,6 +98,7 @@ __decorate([
                         totalMembers: { type: "number", example: 100 },
                         totalMaleMembers: { type: "number", example: 60 },
                         totalFemaleMembers: { type: "number", example: 40 },
+                        totalBandLeaders: { type: "number", example: 40 },
                         hasPrev: { type: "boolean", example: "true" },
                         hasNext: { type: "boolean", example: "true" },
                     },
