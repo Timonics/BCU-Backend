@@ -2,11 +2,13 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
+  NotAcceptableException,
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Band } from "src/entity/band.entity";
-import { Repository } from "typeorm";
+import { Not, Repository } from "typeorm";
 import { CreateBandDto } from "./dto/create_band.dto";
 import { UpdateBandDto } from "./dto/update_band.dto";
 import { Member } from "src/entity/member.entity";
@@ -14,6 +16,7 @@ import { Gender } from "src/utils/enums/gender.enum";
 
 @Injectable()
 export class BandService {
+  private logger = new Logger(BandService.name);
   constructor(
     @InjectRepository(Band)
     private readonly bandRepository: Repository<Band>,
@@ -65,7 +68,7 @@ export class BandService {
 
     bandsWithMembers.forEach((band) => {
       const bandLeadersArr = band.members.filter(
-        (member) => member.leadershipPosition !== null
+        (member) => member.leadershipPosition?.id
       );
       totalBandLeaders = totalBandLeaders + bandLeadersArr.length;
     });
@@ -75,11 +78,16 @@ export class BandService {
     const baseQuery = this.bandRepository
       .createQueryBuilder("band")
       .leftJoinAndSelect("band.members", "members")
+      .leftJoin("band.bandCaptain", "bandCaptain")
       .leftJoinAndSelect("members.unit", "unit")
       .leftJoinAndSelect("members.leadershipPosition", "leadershipPosition")
       .select([
         "band",
         "members",
+        "bandCaptain.id",
+        "bandCaptain.firstName",
+        "bandCaptain.lastName",
+        "bandCaptain.email",
         "unit.id",
         "unit.name",
         "leadershipPosition.id",
@@ -121,11 +129,16 @@ export class BandService {
       .createQueryBuilder("band")
       .where("band.id = :id", { id })
       .leftJoinAndSelect("band.members", "members")
+      .leftJoin("band.bandCaptain", "bandCaptain")
       .leftJoinAndSelect("members.unit", "unit")
       .leftJoinAndSelect("members.leadershipPosition", "leadershipPosition")
       .select([
         "band",
         "members",
+        "bandCaptain.id",
+        "bandCaptain.firstName",
+        "bandCaptain.lastName",
+        "bandCaptain.email",
         "unit.id",
         "unit.name",
         "leadershipPosition.id",
@@ -169,8 +182,23 @@ export class BandService {
       });
       if (!bandCaptain)
         throw new NotFoundException(
-          `Band with ID ${bandUpdateData.bandCaptainId} not found`
+          `Member with ID ${bandUpdateData.bandCaptainId} not found`
         );
+
+      const existingCaptain = await this.memberRepository.findOne({
+        where: {
+          band: { id: bandExists.id },
+          leadershipPosition: { id: bandCaptain.leadershipPosition?.id },
+          id: Not(bandCaptain.id),
+        },
+      });
+
+      if (existingCaptain) {
+        throw new NotAcceptableException(
+          "This leadership position is already assigned to another member in the band"
+        );
+      }
+
       bandExists.bandCaptain = bandCaptain;
     }
 

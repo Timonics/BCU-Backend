@@ -140,10 +140,13 @@ let MemberService = MemberService_1 = class MemberService {
             memberExists.band = band;
         }
         if (memberUpdateData.leadershipPositionId) {
-            const leader = memberUpdateData.leadershipPositionId == 0
+            if (!memberExists.band && !memberExists.unit) {
+                throw new common_1.NotAcceptableException("This member has to have belong to a band or unit before assigning leadership position");
+            }
+            const leaderPosition = memberUpdateData.leadershipPositionId == 0
                 ? null
                 : await this.leadershipService.findLeadershipPositionById(memberUpdateData.leadershipPositionId);
-            if (!leader) {
+            if (!leaderPosition) {
                 throw new common_1.NotFoundException(`Leadership Position with ID ${memberUpdateData.leadershipPositionId} not found`);
             }
             const existingLeader = await this.memberRepository.findOne({
@@ -156,7 +159,12 @@ let MemberService = MemberService_1 = class MemberService {
             if (existingLeader) {
                 throw new common_1.NotAcceptableException("This leadership position is already assigned to another member in the band");
             }
-            memberExists.leadershipPosition = leader;
+            if (leaderPosition.type === "captain") {
+                await this.bandservice.update(memberExists.band?.id, {
+                    bandCaptainId: memberExists.id,
+                });
+            }
+            memberExists.leadershipPosition = leaderPosition;
         }
         if (memberUpdateData.unitId) {
             const unit = await this.unitservice.findUnitById(memberUpdateData.unitId);

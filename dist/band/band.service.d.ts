@@ -6,6 +6,7 @@ import { Member } from "src/entity/member.entity";
 export declare class BandService {
     private readonly bandRepository;
     private memberRepository;
+    private logger;
     constructor(bandRepository: Repository<Band>, memberRepository: Repository<Member>);
     findAll(page?: number, limit?: number, sortBy?: string, sortOrder?: "ASC" | "DESC"): Promise<{
         bands: Band[];

@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var BandService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BandService = void 0;
 const common_1 = require("@nestjs/common");
@@ -19,9 +20,10 @@ const band_entity_1 = require("../entity/band.entity");
 const typeorm_2 = require("typeorm");
 const member_entity_1 = require("../entity/member.entity");
 const gender_enum_1 = require("../utils/enums/gender.enum");
-let BandService = class BandService {
+let BandService = BandService_1 = class BandService {
     bandRepository;
     memberRepository;
+    logger = new common_1.Logger(BandService_1.name);
     constructor(bandRepository, memberRepository) {
         this.bandRepository = bandRepository;
         this.memberRepository = memberRepository;
@@ -47,18 +49,23 @@ let BandService = class BandService {
             .getMany();
         const bandsWithMembers = bandsQuery.filter((band) => band.members.length);
         bandsWithMembers.forEach((band) => {
-            const bandLeadersArr = band.members.filter((member) => member.leadershipPosition !== null);
+            const bandLeadersArr = band.members.filter((member) => member.leadershipPosition?.id);
             totalBandLeaders = totalBandLeaders + bandLeadersArr.length;
         });
         const totalPages = Math.ceil(totalBands / limit);
         const baseQuery = this.bandRepository
             .createQueryBuilder("band")
             .leftJoinAndSelect("band.members", "members")
+            .leftJoin("band.bandCaptain", "bandCaptain")
             .leftJoinAndSelect("members.unit", "unit")
             .leftJoinAndSelect("members.leadershipPosition", "leadershipPosition")
             .select([
             "band",
             "members",
+            "bandCaptain.id",
+            "bandCaptain.firstName",
+            "bandCaptain.lastName",
+            "bandCaptain.email",
             "unit.id",
             "unit.name",
             "leadershipPosition.id",
@@ -95,11 +102,16 @@ let BandService = class BandService {
             .createQueryBuilder("band")
             .where("band.id = :id", { id })
             .leftJoinAndSelect("band.members", "members")
+            .leftJoin("band.bandCaptain", "bandCaptain")
             .leftJoinAndSelect("members.unit", "unit")
             .leftJoinAndSelect("members.leadershipPosition", "leadershipPosition")
             .select([
             "band",
             "members",
+            "bandCaptain.id",
+            "bandCaptain.firstName",
+            "bandCaptain.lastName",
+            "bandCaptain.email",
             "unit.id",
             "unit.name",
             "leadershipPosition.id",
@@ -134,7 +146,17 @@ let BandService = class BandService {
                 where: { id: bandUpdateData.bandCaptainId },
             });
             if (!bandCaptain)
-                throw new common_1.NotFoundException(`Band with ID ${bandUpdateData.bandCaptainId} not found`);
+                throw new common_1.NotFoundException(`Member with ID ${bandUpdateData.bandCaptainId} not found`);
+            const existingCaptain = await this.memberRepository.findOne({
+                where: {
+                    band: { id: bandExists.id },
+                    leadershipPosition: { id: bandCaptain.leadershipPosition?.id },
+                    id: (0, typeorm_2.Not)(bandCaptain.id),
+                },
+            });
+            if (existingCaptain) {
+                throw new common_1.NotAcceptableException("This leadership position is already assigned to another member in the band");
+            }
             bandExists.bandCaptain = bandCaptain;
         }
         Object.keys(bandUpdateData).forEach((key) => {
@@ -146,7 +168,7 @@ let BandService = class BandService {
     }
 };
 exports.BandService = BandService;
-exports.BandService = BandService = __decorate([
+exports.BandService = BandService = BandService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(band_entity_1.Band)),
     __param(1, (0, typeorm_1.InjectRepository)(member_entity_1.Member)),

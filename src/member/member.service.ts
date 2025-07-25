@@ -183,13 +183,18 @@ export class MemberService {
     }
 
     if (memberUpdateData.leadershipPositionId) {
-      const leader =
+      if (!memberExists.band && !memberExists.unit) {
+        throw new NotAcceptableException(
+          "This member has to have belong to a band or unit before assigning leadership position"
+        );
+      }
+      const leaderPosition =
         memberUpdateData.leadershipPositionId == 0
           ? null
           : await this.leadershipService.findLeadershipPositionById(
               memberUpdateData.leadershipPositionId
             );
-      if (!leader) {
+      if (!leaderPosition) {
         throw new NotFoundException(
           `Leadership Position with ID ${memberUpdateData.leadershipPositionId} not found`
         );
@@ -208,8 +213,14 @@ export class MemberService {
           "This leadership position is already assigned to another member in the band"
         );
       }
-
-      memberExists.leadershipPosition = leader;
+      
+      if (leaderPosition.type === "captain") {
+        await this.bandservice.update(memberExists.band?.id!, {
+          bandCaptainId: memberExists.id,
+        });
+      }
+      
+      memberExists.leadershipPosition = leaderPosition;
     }
 
     if (memberUpdateData.unitId) {
