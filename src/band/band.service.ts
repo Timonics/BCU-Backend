@@ -13,6 +13,8 @@ import { CreateBandDto } from "./dto/create_band.dto";
 import { UpdateBandDto } from "./dto/update_band.dto";
 import { Member } from "src/entity/member.entity";
 import { Gender } from "src/utils/enums/gender.enum";
+import { LeadershipType } from "src/utils/enums/leadership_type.enum";
+import { LeadershipService } from "src/leadership/leadership.service";
 
 @Injectable()
 export class BandService {
@@ -22,7 +24,9 @@ export class BandService {
     private readonly bandRepository: Repository<Band>,
 
     @InjectRepository(Member)
-    private memberRepository: Repository<Member>
+    private memberRepository: Repository<Member>,
+
+    private leadershipService: LeadershipService
   ) {}
 
   async findAll(
@@ -177,29 +181,30 @@ export class BandService {
     }
 
     if (bandUpdateData.bandCaptainId) {
-      const bandCaptain = await this.memberRepository.findOne({
+      const memberExists = await this.memberRepository.findOne({
         where: { id: bandUpdateData.bandCaptainId },
       });
-      if (!bandCaptain)
+      if (!memberExists)
         throw new NotFoundException(
           `Member with ID ${bandUpdateData.bandCaptainId} not found`
         );
 
-      const existingCaptain = await this.memberRepository.findOne({
-        where: {
-          band: { id: bandExists.id },
-          leadershipPosition: { id: bandCaptain.leadershipPosition?.id },
-          id: Not(bandCaptain.id),
-        },
-      });
-
-      if (existingCaptain) {
+      if (memberExists.band && memberExists.band.id !== bandExists.id) {
         throw new NotAcceptableException(
-          "This leadership position is already assigned to another member in the band"
+          "This member already belongs to another band"
         );
       }
 
-      bandExists.bandCaptain = bandCaptain;
+      const captainAssigned = await this.assignNewCaptain(bandExists.id, {
+        bandCaptainId: bandUpdateData.bandCaptainId,
+      });
+      if (!captainAssigned) {
+        throw new NotAcceptableException(
+          "Band captain was not successfully re-assigned"
+        );
+      }
+
+      bandExists.bandCaptain = memberExists;
     }
 
     Object.keys(bandUpdateData).forEach((key) => {
@@ -209,5 +214,80 @@ export class BandService {
     });
 
     return this.bandRepository.save(bandExists);
+  }
+
+  async assignNewCaptain(
+    bandId: number,
+    updateBandData: Pick<UpdateBandDto, "bandCaptainId">
+  ) {
+    const memberExists = await this.memberRepository.findOne({
+      where: {
+        id: updateBandData.bandCaptainId,
+      },
+    });
+    if (!memberExists) {
+      throw new NotFoundException(`Member with ID ${bandId} not found`);
+    }
+
+    const bandExists = await this.bandRepository.findOne({
+      where: {
+        id: bandId,
+      },
+    });
+    if (!bandExists) {
+      throw new NotFoundException(`Band with ID ${bandId} not found`);
+    }
+
+    const existingCaptain = await this.memberRepository.findOne({
+      where: {
+        band: { id: bandExists.id },
+        leadershipPosition: { type: LeadershipType.CAPTAIN },
+        id: Not(updateBandData.bandCaptainId!),
+      },
+    });
+
+    if (existingCaptain) {
+      existingCaptain.leadershipPosition = null;
+      await this.memberRepository.save(existingCaptain);
+    }
+
+    const leadershipPosition =
+      await this.leadershipService.findCaptainPosition();
+
+    if (!leadershipPosition) {
+      throw new NotFoundException(`Leadership Position not found`);
+    }
+
+    memberExists.leadershipPosition = leadershipPosition;
+    await this.memberRepository.save(memberExists);
+
+    bandExists.bandCaptain = memberExists;
+    return this.bandRepository.save(bandExists);
+  }
+
+  async findBandMembers(bandId: number): Promise<Member[]> {
+    const bandCaptain = await this.memberRepository.findOne({
+      where: {
+        band: { id: bandId },
+        leadershipPosition: { type: LeadershipType.CAPTAIN },
+      },
+    });
+    if (!bandCaptain) {
+      const allBandMembers = await this.memberRepository.find({
+        where: {
+          band: { id: bandId },
+        },
+      });
+      if (!allBandMembers) {
+        throw new NotFoundException("No band members found");
+      }
+      return allBandMembers;
+    } else
+      return this.memberRepository.find({
+        where: {
+          id: Not(bandCaptain.id),
+          band: { id: bandId },
+        },
+      });
   }
 }

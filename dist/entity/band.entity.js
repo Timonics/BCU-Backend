@@ -77,7 +77,7 @@ __decorate([
     }),
     (0, typeorm_1.OneToOne)(() => member_entity_1.Member, { nullable: true }),
     (0, typeorm_1.JoinColumn)(),
-    __metadata("design:type", member_entity_1.Member)
+    __metadata("design:type", Object)
 ], Band.prototype, "bandCaptain", void 0);
 exports.Band = Band = __decorate([
     (0, typeorm_1.Entity)()

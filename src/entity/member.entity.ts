@@ -311,5 +311,5 @@ export class Member {
     required: false,
   })
   @ManyToOne(() => LeadershipPosition, { nullable: true })
-  leadershipPosition?: LeadershipPosition;
+  leadershipPosition?: LeadershipPosition | null;
 }

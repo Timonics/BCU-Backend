@@ -40,5 +40,5 @@ export declare class Member {
     band?: Band;
     unit?: Unit;
     leadingBand?: Band;
-    leadershipPosition?: LeadershipPosition;
+    leadershipPosition?: LeadershipPosition | null;
 }

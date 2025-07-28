@@ -14,6 +14,7 @@ const band_controller_1 = require("./band.controller");
 const band_service_1 = require("./band.service");
 const member_module_1 = require("../member/member.module");
 const member_entity_1 = require("../entity/member.entity");
+const leadership_module_1 = require("../leadership/leadership.module");
 let BandModule = class BandModule {
 };
 exports.BandModule = BandModule;
@@ -22,6 +23,7 @@ exports.BandModule = BandModule = __decorate([
         imports: [
             typeorm_1.TypeOrmModule.forFeature([band_entity_1.Band, member_entity_1.Member]),
             (0, common_1.forwardRef)(() => member_module_1.MemberModule),
+            leadership_module_1.LeadershipModule,
         ],
         controllers: [band_controller_1.BandController],
         providers: [band_service_1.BandService],

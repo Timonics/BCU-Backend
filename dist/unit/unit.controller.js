@@ -19,6 +19,7 @@ const unit_entity_1 = require("../entity/unit.entity");
 const update_unit_dto_1 = require("./dto/update_unit.dto");
 const create_unit_dto_1 = require("./dto/create_unit.dto");
 const swagger_1 = require("@nestjs/swagger");
+const member_entity_1 = require("../entity/member.entity");
 let UnitController = class UnitController {
     unitService;
     constructor(unitService) {
@@ -43,6 +44,9 @@ let UnitController = class UnitController {
     }
     async updateUnit(id, updateUnitData) {
         return await this.unitService.update(id, updateUnitData);
+    }
+    async findUnitMembers(unitId) {
+        return await this.unitService.findUnitMembers(unitId);
     }
 };
 exports.UnitController = UnitController;
@@ -195,6 +199,24 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], UnitController.prototype, "updateUnit", null);
+__decorate([
+    (0, common_1.Get)("unit-members/:unitId"),
+    (0, swagger_1.ApiOperation)({
+        summary: "Find unit members.",
+        description: "Fetch members in a unit..",
+    }),
+    (0, swagger_1.ApiParam)({ name: "unitId", description: "Unit ID to update", type: Number }),
+    (0, swagger_1.ApiOkResponse)({
+        description: "Unit members successfully fetched",
+        type: [member_entity_1.Member],
+    }),
+    (0, swagger_1.ApiNotFoundResponse)({ description: "Unit members not found" }),
+    (0, swagger_1.ApiBadRequestResponse)({ description: "Invalid input data" }),
+    __param(0, (0, common_1.Param)("unitId")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], UnitController.prototype, "findUnitMembers", null);
 exports.UnitController = UnitController = __decorate([
     (0, swagger_1.ApiTags)("Units"),
     (0, swagger_1.ApiBearerAuth)("access-token"),

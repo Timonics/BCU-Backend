@@ -19,6 +19,7 @@ const band_entity_1 = require("../entity/band.entity");
 const update_band_dto_1 = require("./dto/update_band.dto");
 const create_band_dto_1 = require("./dto/create_band.dto");
 const swagger_1 = require("@nestjs/swagger");
+const member_entity_1 = require("../entity/member.entity");
 let BandController = class BandController {
     bandService;
     constructor(bandService) {
@@ -43,6 +44,12 @@ let BandController = class BandController {
     }
     async updateBand(id, updateBandData) {
         return await this.bandService.update(id, updateBandData);
+    }
+    async assignNewBandCaptain(bandId, updateBandData) {
+        return await this.bandService.assignNewCaptain(bandId, updateBandData);
+    }
+    async findBandMembers(bandId) {
+        return await this.bandService.findBandMembers(bandId);
     }
 };
 exports.BandController = BandController;
@@ -179,6 +186,47 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], BandController.prototype, "updateBand", null);
+__decorate([
+    (0, common_1.Put)("assign-captain/:bandId"),
+    (0, swagger_1.ApiOperation)({
+        summary: "Assign a new band captain",
+        description: "Updates an existing band with partial or complete data",
+    }),
+    (0, swagger_1.ApiParam)({ name: "bandId", description: "Band ID to update", type: Number }),
+    (0, swagger_1.ApiBody)({
+        description: "Band update data (Captain ID)",
+        type: update_band_dto_1.UpdateBandDto,
+    }),
+    (0, swagger_1.ApiOkResponse)({
+        description: "Band updated successfully",
+        type: band_entity_1.Band,
+    }),
+    (0, swagger_1.ApiNotFoundResponse)({ description: "Band not found" }),
+    (0, swagger_1.ApiBadRequestResponse)({ description: "Invalid input data" }),
+    __param(0, (0, common_1.Param)("bandId")),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], BandController.prototype, "assignNewBandCaptain", null);
+__decorate([
+    (0, common_1.Get)("band-members/:bandId"),
+    (0, swagger_1.ApiOperation)({
+        summary: "Find band members.",
+        description: "Fetch members in a band without the band captain.",
+    }),
+    (0, swagger_1.ApiParam)({ name: "bandId", description: "Band ID to update", type: Number }),
+    (0, swagger_1.ApiOkResponse)({
+        description: "Band members successfully fetched",
+        type: [member_entity_1.Member],
+    }),
+    (0, swagger_1.ApiNotFoundResponse)({ description: "Band members not found" }),
+    (0, swagger_1.ApiBadRequestResponse)({ description: "Invalid input data" }),
+    __param(0, (0, common_1.Param)("bandId")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], BandController.prototype, "findBandMembers", null);
 exports.BandController = BandController = __decorate([
     (0, swagger_1.ApiTags)("Bands"),
     (0, swagger_1.ApiBearerAuth)("access-token"),

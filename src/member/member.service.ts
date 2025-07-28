@@ -14,6 +14,7 @@ import { UpdateMemberDto } from "./dto/update_member.dto";
 import { MemberMetaData } from "./dto/member_metadata.dto";
 import { Gender } from "src/utils/enums/gender.enum";
 import { LeadershipService } from "src/leadership/leadership.service";
+import { Unit } from "src/entity/unit.entity";
 
 @Injectable()
 export class MemberService {
@@ -23,6 +24,10 @@ export class MemberService {
     @InjectRepository(Member)
     private readonly memberRepository: Repository<Member>,
     private readonly bandservice: BandService,
+
+    @InjectRepository(Unit)
+    private readonly unitRepository: Repository<Unit>,
+
     private readonly unitservice: UnitService,
     private readonly leadershipService: LeadershipService
   ) {}
@@ -166,7 +171,7 @@ export class MemberService {
   ): Promise<Member> {
     const memberExists = await this.memberRepository.findOne({
       where: { id },
-      relations: ["band", "band.members", "leadershipPosition", "unit"],
+      relations: ["band", "band.members", "leadershipPosition", "unit", "unit.unitHead"],
     });
 
     if (!memberExists) {
@@ -179,6 +184,10 @@ export class MemberService {
         throw new NotFoundException(
           `Band with ID ${memberUpdateData.bandId} not found`
         );
+
+      if (memberExists.band && memberExists.band.bandCaptain) {
+        memberExists.band.bandCaptain = null;
+      }
       memberExists.band = band;
     }
 
@@ -189,11 +198,9 @@ export class MemberService {
         );
       }
       const leaderPosition =
-        memberUpdateData.leadershipPositionId == 0
-          ? null
-          : await this.leadershipService.findLeadershipPositionById(
-              memberUpdateData.leadershipPositionId
-            );
+        await this.leadershipService.findLeadershipPositionById(
+          memberUpdateData.leadershipPositionId
+        );
       if (!leaderPosition) {
         throw new NotFoundException(
           `Leadership Position with ID ${memberUpdateData.leadershipPositionId} not found`
@@ -213,15 +220,17 @@ export class MemberService {
           "This leadership position is already assigned to another member in the band"
         );
       }
-      
+
       if (leaderPosition.type === "captain") {
         await this.bandservice.update(memberExists.band?.id!, {
           bandCaptainId: memberExists.id,
         });
       }
-      
+
       memberExists.leadershipPosition = leaderPosition;
     }
+
+    let unitToUpdate: Unit | null = null;
 
     if (memberUpdateData.unitId) {
       const unit = await this.unitservice.findUnitById(memberUpdateData.unitId);
@@ -229,6 +238,15 @@ export class MemberService {
         throw new NotFoundException(
           `Unit with ID ${memberUpdateData.unitId} not found`
         );
+
+      if (
+        memberExists.unit &&
+        memberExists.unit.id !== unit.id &&
+        memberExists.unit.unitHead?.id === memberExists.id
+      ) {
+        unitToUpdate = memberExists.unit;
+        unitToUpdate.unitHead = null;
+      }
       memberExists.unit = unit;
     }
 
@@ -236,7 +254,10 @@ export class MemberService {
 
     return this.memberRepository.manager.transaction(
       async (transactionalEntityManager) => {
-        return await transactionalEntityManager.save(memberExists);
+        if (unitToUpdate) {
+          await transactionalEntityManager.save(Unit, unitToUpdate);
+        }
+        return await transactionalEntityManager.save(Member, memberExists);
       }
     );
   }
@@ -277,6 +298,18 @@ export class MemberService {
       this.logger.error("Failed to count members", err.stack);
       return 0;
     }
+  }
+
+  async findMemberByName(name: string) {
+    const nameArr = name.split(" ");
+    const firstName = nameArr[0];
+    const lastName = nameArr.at(-1);
+    return this.memberRepository.findOne({
+      where: {
+        firstName,
+        lastName,
+      },
+    });
   }
 
   async memberMetaData(): Promise<MemberMetaData> {

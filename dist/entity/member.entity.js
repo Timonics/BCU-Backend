@@ -389,7 +389,7 @@ __decorate([
         required: false,
     }),
     (0, typeorm_1.ManyToOne)(() => leadership_entity_1.LeadershipPosition, { nullable: true }),
-    __metadata("design:type", leadership_entity_1.LeadershipPosition)
+    __metadata("design:type", Object)
 ], Member.prototype, "leadershipPosition", void 0);
 exports.Member = Member = __decorate([
     (0, typeorm_1.Entity)()

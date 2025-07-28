@@ -6,9 +6,10 @@ import { MemberController } from './member.controllers';
 import { BandModule } from 'src/band/band.module';
 import { UnitModule } from 'src/unit/unit.module';
 import { LeadershipModule } from 'src/leadership/leadership.module';
+import { Unit } from 'src/entity/unit.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Member]), BandModule, UnitModule, LeadershipModule],
+  imports: [TypeOrmModule.forFeature([Member, Unit]), BandModule, UnitModule, LeadershipModule],
   providers: [MemberService],
   controllers: [MemberController],
   exports: [MemberService],

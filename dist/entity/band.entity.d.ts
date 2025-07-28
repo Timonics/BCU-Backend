@@ -6,5 +6,5 @@ export declare class Band {
     gender: Gender;
     foundingDate: Date;
     members: Member[];
-    bandCaptain?: Member;
+    bandCaptain?: Member | null;
 }

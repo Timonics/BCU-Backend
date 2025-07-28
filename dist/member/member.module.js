@@ -15,12 +15,13 @@ const member_controllers_1 = require("./member.controllers");
 const band_module_1 = require("../band/band.module");
 const unit_module_1 = require("../unit/unit.module");
 const leadership_module_1 = require("../leadership/leadership.module");
+const unit_entity_1 = require("../entity/unit.entity");
 let MemberModule = class MemberModule {
 };
 exports.MemberModule = MemberModule;
 exports.MemberModule = MemberModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([member_entity_1.Member]), band_module_1.BandModule, unit_module_1.UnitModule, leadership_module_1.LeadershipModule],
+        imports: [typeorm_1.TypeOrmModule.forFeature([member_entity_1.Member, unit_entity_1.Unit]), band_module_1.BandModule, unit_module_1.UnitModule, leadership_module_1.LeadershipModule],
         providers: [member_service_1.MemberService],
         controllers: [member_controllers_1.MemberController],
         exports: [member_service_1.MemberService],

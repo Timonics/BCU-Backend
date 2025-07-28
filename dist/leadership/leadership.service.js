@@ -16,6 +16,7 @@ exports.LeadershipService = void 0;
 const typeorm_1 = require("@nestjs/typeorm");
 const leadership_entity_1 = require("../entity/leadership.entity");
 const typeorm_2 = require("typeorm");
+const leadership_type_enum_1 = require("../utils/enums/leadership_type.enum");
 let LeadershipService = class LeadershipService {
     leadershipRepository;
     constructor(leadershipRepository) {
@@ -40,6 +41,13 @@ let LeadershipService = class LeadershipService {
             .loadRelationCountAndMap("leader.membersCount", "leader.members")
             .select(["leader", "band.id", "band.name", "unit.id", "unit.name"])
             .getMany();
+    }
+    async findCaptainPosition() {
+        return this.leadershipRepository.findOne({
+            where: {
+                type: leadership_type_enum_1.LeadershipType.CAPTAIN,
+            },
+        });
     }
 };
 exports.LeadershipService = LeadershipService;

@@ -20,13 +20,17 @@ const band_entity_1 = require("../entity/band.entity");
 const typeorm_2 = require("typeorm");
 const member_entity_1 = require("../entity/member.entity");
 const gender_enum_1 = require("../utils/enums/gender.enum");
+const leadership_type_enum_1 = require("../utils/enums/leadership_type.enum");
+const leadership_service_1 = require("../leadership/leadership.service");
 let BandService = BandService_1 = class BandService {
     bandRepository;
     memberRepository;
+    leadershipService;
     logger = new common_1.Logger(BandService_1.name);
-    constructor(bandRepository, memberRepository) {
+    constructor(bandRepository, memberRepository, leadershipService) {
         this.bandRepository = bandRepository;
         this.memberRepository = memberRepository;
+        this.leadershipService = leadershipService;
     }
     async findAll(page = 1, limit = 10, sortBy = "id", sortOrder = "ASC") {
         let totalBands;
@@ -142,22 +146,21 @@ let BandService = BandService_1 = class BandService {
             throw new common_1.NotFoundException(`Band with ID ${bandId} not found`);
         }
         if (bandUpdateData.bandCaptainId) {
-            const bandCaptain = await this.memberRepository.findOne({
+            const memberExists = await this.memberRepository.findOne({
                 where: { id: bandUpdateData.bandCaptainId },
             });
-            if (!bandCaptain)
+            if (!memberExists)
                 throw new common_1.NotFoundException(`Member with ID ${bandUpdateData.bandCaptainId} not found`);
-            const existingCaptain = await this.memberRepository.findOne({
-                where: {
-                    band: { id: bandExists.id },
-                    leadershipPosition: { id: bandCaptain.leadershipPosition?.id },
-                    id: (0, typeorm_2.Not)(bandCaptain.id),
-                },
-            });
-            if (existingCaptain) {
-                throw new common_1.NotAcceptableException("This leadership position is already assigned to another member in the band");
+            if (memberExists.band && memberExists.band.id !== bandExists.id) {
+                throw new common_1.NotAcceptableException("This member already belongs to another band");
             }
-            bandExists.bandCaptain = bandCaptain;
+            const captainAssigned = await this.assignNewCaptain(bandExists.id, {
+                bandCaptainId: bandUpdateData.bandCaptainId,
+            });
+            if (!captainAssigned) {
+                throw new common_1.NotAcceptableException("Band captain was not successfully re-assigned");
+            }
+            bandExists.bandCaptain = memberExists;
         }
         Object.keys(bandUpdateData).forEach((key) => {
             if (bandUpdateData[key] !== undefined && bandUpdateData[key] !== null) {
@@ -166,6 +169,69 @@ let BandService = BandService_1 = class BandService {
         });
         return this.bandRepository.save(bandExists);
     }
+    async assignNewCaptain(bandId, updateBandData) {
+        const memberExists = await this.memberRepository.findOne({
+            where: {
+                id: updateBandData.bandCaptainId,
+            },
+        });
+        if (!memberExists) {
+            throw new common_1.NotFoundException(`Member with ID ${bandId} not found`);
+        }
+        const bandExists = await this.bandRepository.findOne({
+            where: {
+                id: bandId,
+            },
+        });
+        if (!bandExists) {
+            throw new common_1.NotFoundException(`Band with ID ${bandId} not found`);
+        }
+        const existingCaptain = await this.memberRepository.findOne({
+            where: {
+                band: { id: bandExists.id },
+                leadershipPosition: { type: leadership_type_enum_1.LeadershipType.CAPTAIN },
+                id: (0, typeorm_2.Not)(updateBandData.bandCaptainId),
+            },
+        });
+        if (existingCaptain) {
+            existingCaptain.leadershipPosition = null;
+            await this.memberRepository.save(existingCaptain);
+        }
+        const leadershipPosition = await this.leadershipService.findCaptainPosition();
+        if (!leadershipPosition) {
+            throw new common_1.NotFoundException(`Leadership Position not found`);
+        }
+        memberExists.leadershipPosition = leadershipPosition;
+        await this.memberRepository.save(memberExists);
+        bandExists.bandCaptain = memberExists;
+        return this.bandRepository.save(bandExists);
+    }
+    async findBandMembers(bandId) {
+        const bandCaptain = await this.memberRepository.findOne({
+            where: {
+                band: { id: bandId },
+                leadershipPosition: { type: leadership_type_enum_1.LeadershipType.CAPTAIN },
+            },
+        });
+        if (!bandCaptain) {
+            const allBandMembers = await this.memberRepository.find({
+                where: {
+                    band: { id: bandId },
+                },
+            });
+            if (!allBandMembers) {
+                throw new common_1.NotFoundException("No band members found");
+            }
+            return allBandMembers;
+        }
+        else
+            return this.memberRepository.find({
+                where: {
+                    id: (0, typeorm_2.Not)(bandCaptain.id),
+                    band: { id: bandId },
+                },
+            });
+    }
 };
 exports.BandService = BandService;
 exports.BandService = BandService = BandService_1 = __decorate([
@@ -173,6 +239,7 @@ exports.BandService = BandService = BandService_1 = __decorate([
     __param(0, (0, typeorm_1.InjectRepository)(band_entity_1.Band)),
     __param(1, (0, typeorm_1.InjectRepository)(member_entity_1.Member)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        typeorm_2.Repository])
+        typeorm_2.Repository,
+        leadership_service_1.LeadershipService])
 ], BandService);
 //# sourceMappingURL=band.service.js.map

@@ -39,7 +39,7 @@ export class Unit {
   })
   @OneToOne(() => Member, { nullable: true })
   @JoinColumn()
-  unitHead?: Member;
+  unitHead?: Member | null;
 
   @ApiProperty({
     description: 'List of members belonging to this unit',

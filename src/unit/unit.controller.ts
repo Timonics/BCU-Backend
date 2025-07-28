@@ -26,6 +26,7 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from "@nestjs/swagger";
+import { Member } from "src/entity/member.entity";
 
 @ApiTags("Units")
 @ApiBearerAuth("access-token")
@@ -203,5 +204,21 @@ export class UnitController {
     @Body() updateUnitData: Partial<UpdateUnitDto>
   ) {
     return await this.unitService.update(id, updateUnitData);
+  }
+
+  @Get("unit-members/:unitId")
+  @ApiOperation({
+    summary: "Find unit members.",
+    description: "Fetch members in a unit..",
+  })
+  @ApiParam({ name: "unitId", description: "Unit ID to update", type: Number })
+  @ApiOkResponse({
+    description: "Unit members successfully fetched",
+    type: [Member],
+  })
+  @ApiNotFoundResponse({ description: "Unit members not found" })
+  @ApiBadRequestResponse({ description: "Invalid input data" })
+  async findUnitMembers(@Param("unitId") unitId: number) {
+    return await this.unitService.findUnitMembers(unitId);
   }
 }

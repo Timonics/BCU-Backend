@@ -18,12 +18,15 @@ const typeorm_1 = require("@nestjs/typeorm");
 const unit_entity_1 = require("../entity/unit.entity");
 const typeorm_2 = require("typeorm");
 const member_entity_1 = require("../entity/member.entity");
+const leadership_entity_1 = require("../entity/leadership.entity");
 let UnitService = class UnitService {
     unitRepository;
     memberRepository;
-    constructor(unitRepository, memberRepository) {
+    leadershipRepository;
+    constructor(unitRepository, memberRepository, leadershipRepository) {
         this.unitRepository = unitRepository;
         this.memberRepository = memberRepository;
+        this.leadershipRepository = leadershipRepository;
     }
     async findAll(page = 1, limit = 10, sortBy = "id", sortOrder = "ASC") {
         const queryBuilder = this.unitRepository
@@ -94,17 +97,17 @@ let UnitService = class UnitService {
             throw new common_1.NotFoundException(`Unit with ID ${unitId} not found`);
         }
         if (unitUpdateData.unitHeadId) {
-            let unitCaptain = await this.memberRepository.findOne({
+            let memberExists = await this.memberRepository.findOne({
                 where: { id: unitUpdateData.unitHeadId },
             });
-            if (!unitCaptain)
+            if (!memberExists)
                 throw new common_1.NotFoundException(`Member with ID ${unitUpdateData.unitHeadId} not found`);
-            if (unitCaptain.unit?.id !== unitId && unitCaptain.unit)
-                throw new common_1.NotAcceptableException(`Member with ID ${unitUpdateData.unitHeadId} can't be assigned this unit's head, update member's details first`);
-            if (!unitCaptain.unit) {
-                this.memberRepository.update(unitCaptain.id, { unit: unitExists });
+            if (memberExists.unit?.id !== unitId && memberExists.unit)
+                throw new common_1.NotAcceptableException("This member already belongs to another unit");
+            if (!memberExists.unit) {
+                this.memberRepository.update(memberExists.id, { unit: unitExists });
             }
-            unitExists.unitHead = unitCaptain;
+            unitExists.unitHead = memberExists;
         }
         Object.keys(unitUpdateData).forEach((key) => {
             if (unitUpdateData[key] !== undefined && unitUpdateData[key] !== null) {
@@ -113,13 +116,26 @@ let UnitService = class UnitService {
         });
         return this.unitRepository.save(unitExists);
     }
+    async findUnitMembers(unitId) {
+        const allUnitMembers = this.memberRepository.find({
+            where: {
+                unit: { id: unitId },
+            },
+        });
+        if (!allUnitMembers) {
+            throw new common_1.NotFoundException("No unit members found");
+        }
+        return allUnitMembers;
+    }
 };
 exports.UnitService = UnitService;
 exports.UnitService = UnitService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(unit_entity_1.Unit)),
     __param(1, (0, typeorm_1.InjectRepository)(member_entity_1.Member)),
+    __param(2, (0, typeorm_1.InjectRepository)(leadership_entity_1.LeadershipPosition)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository])
 ], UnitService);
 //# sourceMappingURL=unit.service.js.map

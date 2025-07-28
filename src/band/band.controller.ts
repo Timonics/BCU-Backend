@@ -25,6 +25,7 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from "@nestjs/swagger";
+import { Member } from "src/entity/member.entity";
 
 @ApiTags("Bands")
 @ApiBearerAuth("access-token")
@@ -188,5 +189,44 @@ export class BandController {
     @Body() updateBandData: Partial<UpdateBandDto>
   ) {
     return await this.bandService.update(id, updateBandData);
+  }
+
+  @Put("assign-captain/:bandId")
+  @ApiOperation({
+    summary: "Assign a new band captain",
+    description: "Updates an existing band with partial or complete data",
+  })
+  @ApiParam({ name: "bandId", description: "Band ID to update", type: Number })
+  @ApiBody({
+    description: "Band update data (Captain ID)",
+    type: UpdateBandDto,
+  })
+  @ApiOkResponse({
+    description: "Band updated successfully",
+    type: Band,
+  })
+  @ApiNotFoundResponse({ description: "Band not found" })
+  @ApiBadRequestResponse({ description: "Invalid input data" })
+  async assignNewBandCaptain(
+    @Param("bandId") bandId: number,
+    @Body() updateBandData: Pick<UpdateBandDto, "bandCaptainId">
+  ) {
+    return await this.bandService.assignNewCaptain(bandId, updateBandData);
+  }
+
+  @Get("band-members/:bandId")
+  @ApiOperation({
+    summary: "Find band members.",
+    description: "Fetch members in a band without the band captain.",
+  })
+  @ApiParam({ name: "bandId", description: "Band ID to update", type: Number })
+  @ApiOkResponse({
+    description: "Band members successfully fetched",
+    type: [Member],
+  })
+  @ApiNotFoundResponse({ description: "Band members not found" })
+  @ApiBadRequestResponse({ description: "Invalid input data" })
+  async findBandMembers(@Param("bandId") bandId: number) {
+    return await this.bandService.findBandMembers(bandId);
   }
 }

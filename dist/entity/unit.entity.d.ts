@@ -3,6 +3,6 @@ export declare class Unit {
     id: number;
     name: string;
     foundingDate: Date;
-    unitHead?: Member;
+    unitHead?: Member | null;
     members: Member[];
 }

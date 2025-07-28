@@ -60,5 +60,5 @@ export class Band {
   })
   @OneToOne(() => Member, { nullable: true })
   @JoinColumn()
-  bandCaptain?: Member;
+  bandCaptain?: Member | null;
 }

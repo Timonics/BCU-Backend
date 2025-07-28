@@ -7,4 +7,5 @@ export declare class LeadershipService {
     create(leadershipData: CreateLeadershipDto): Promise<LeadershipPosition>;
     findLeadershipPositionById(id: number): Promise<LeadershipPosition | null>;
     findAllLeaders(): Promise<LeadershipPosition[]>;
+    findCaptainPosition(): Promise<LeadershipPosition | null>;
 }

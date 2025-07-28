@@ -22,15 +22,18 @@ const band_service_1 = require("../band/band.service");
 const unit_service_1 = require("../unit/unit.service");
 const gender_enum_1 = require("../utils/enums/gender.enum");
 const leadership_service_1 = require("../leadership/leadership.service");
+const unit_entity_1 = require("../entity/unit.entity");
 let MemberService = MemberService_1 = class MemberService {
     memberRepository;
     bandservice;
+    unitRepository;
     unitservice;
     leadershipService;
     logger = new common_1.Logger(MemberService_1.name);
-    constructor(memberRepository, bandservice, unitservice, leadershipService) {
+    constructor(memberRepository, bandservice, unitRepository, unitservice, leadershipService) {
         this.memberRepository = memberRepository;
         this.bandservice = bandservice;
+        this.unitRepository = unitRepository;
         this.unitservice = unitservice;
         this.leadershipService = leadershipService;
     }
@@ -128,7 +131,7 @@ let MemberService = MemberService_1 = class MemberService {
     async update(id, memberUpdateData) {
         const memberExists = await this.memberRepository.findOne({
             where: { id },
-            relations: ["band", "band.members", "leadershipPosition", "unit"],
+            relations: ["band", "band.members", "leadershipPosition", "unit", "unit.unitHead"],
         });
         if (!memberExists) {
             throw new common_1.NotFoundException(`Member with ID ${id} not found`);
@@ -137,15 +140,16 @@ let MemberService = MemberService_1 = class MemberService {
             const band = await this.bandservice.findBandById(memberUpdateData.bandId);
             if (!band)
                 throw new common_1.NotFoundException(`Band with ID ${memberUpdateData.bandId} not found`);
+            if (memberExists.band && memberExists.band.bandCaptain) {
+                memberExists.band.bandCaptain = null;
+            }
             memberExists.band = band;
         }
         if (memberUpdateData.leadershipPositionId) {
             if (!memberExists.band && !memberExists.unit) {
                 throw new common_1.NotAcceptableException("This member has to have belong to a band or unit before assigning leadership position");
             }
-            const leaderPosition = memberUpdateData.leadershipPositionId == 0
-                ? null
-                : await this.leadershipService.findLeadershipPositionById(memberUpdateData.leadershipPositionId);
+            const leaderPosition = await this.leadershipService.findLeadershipPositionById(memberUpdateData.leadershipPositionId);
             if (!leaderPosition) {
                 throw new common_1.NotFoundException(`Leadership Position with ID ${memberUpdateData.leadershipPositionId} not found`);
             }
@@ -166,15 +170,25 @@ let MemberService = MemberService_1 = class MemberService {
             }
             memberExists.leadershipPosition = leaderPosition;
         }
+        let unitToUpdate = null;
         if (memberUpdateData.unitId) {
             const unit = await this.unitservice.findUnitById(memberUpdateData.unitId);
             if (!unit)
                 throw new common_1.NotFoundException(`Unit with ID ${memberUpdateData.unitId} not found`);
+            if (memberExists.unit &&
+                memberExists.unit.id !== unit.id &&
+                memberExists.unit.unitHead?.id === memberExists.id) {
+                unitToUpdate = memberExists.unit;
+                unitToUpdate.unitHead = null;
+            }
             memberExists.unit = unit;
         }
         Object.assign(memberExists, memberUpdateData);
         return this.memberRepository.manager.transaction(async (transactionalEntityManager) => {
-            return await transactionalEntityManager.save(memberExists);
+            if (unitToUpdate) {
+                await transactionalEntityManager.save(unit_entity_1.Unit, unitToUpdate);
+            }
+            return await transactionalEntityManager.save(member_entity_1.Member, memberExists);
         });
     }
     async delete(memberId) {
@@ -214,6 +228,17 @@ let MemberService = MemberService_1 = class MemberService {
             return 0;
         }
     }
+    async findMemberByName(name) {
+        const nameArr = name.split(" ");
+        const firstName = nameArr[0];
+        const lastName = nameArr.at(-1);
+        return this.memberRepository.findOne({
+            where: {
+                firstName,
+                lastName,
+            },
+        });
+    }
     async memberMetaData() {
         const [totalMembers, totalMaleMembers, totalFemaleMembers] = await Promise.all([
             this.totalMembers(),
@@ -231,8 +256,10 @@ exports.MemberService = MemberService;
 exports.MemberService = MemberService = MemberService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(member_entity_1.Member)),
+    __param(2, (0, typeorm_1.InjectRepository)(unit_entity_1.Unit)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         band_service_1.BandService,
+        typeorm_2.Repository,
         unit_service_1.UnitService,
         leadership_service_1.LeadershipService])
 ], MemberService);

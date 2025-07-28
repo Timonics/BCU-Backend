@@ -53,7 +53,7 @@ __decorate([
     }),
     (0, typeorm_1.OneToOne)(() => member_entity_1.Member, { nullable: true }),
     (0, typeorm_1.JoinColumn)(),
-    __metadata("design:type", member_entity_1.Member)
+    __metadata("design:type", Object)
 ], Unit.prototype, "unitHead", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({

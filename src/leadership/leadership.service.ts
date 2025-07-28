@@ -2,6 +2,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { LeadershipPosition } from "src/entity/leadership.entity";
 import { Repository } from "typeorm";
 import { CreateLeadershipDto } from "./dto/create_leadership.dto";
+import { LeadershipType } from "src/utils/enums/leadership_type.enum";
 
 export class LeadershipService {
   constructor(
@@ -34,5 +35,13 @@ export class LeadershipService {
       .loadRelationCountAndMap("leader.membersCount", "leader.members")
       .select(["leader", "band.id", "band.name", "unit.id", "unit.name"])
       .getMany();
+  }
+
+  async findCaptainPosition(): Promise<LeadershipPosition | null> {
+    return this.leadershipRepository.findOne({
+      where: {
+        type: LeadershipType.CAPTAIN,
+      },
+    });
   }
 }

@@ -5,10 +5,12 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Unit } from "src/entity/unit.entity";
-import { Not, Repository } from "typeorm";
+import { Equal, Not, Repository } from "typeorm";
 import { CreateUnitDto } from "./dto/create_unit.dto";
 import { Member } from "src/entity/member.entity";
 import { UpdateUnitDto } from "./dto/update_unit.dto";
+import { LeadershipType } from "src/utils/enums/leadership_type.enum";
+import { LeadershipPosition } from "src/entity/leadership.entity";
 
 @Injectable()
 export class UnitService {
@@ -17,7 +19,10 @@ export class UnitService {
     private readonly unitRepository: Repository<Unit>,
 
     @InjectRepository(Member)
-    private readonly memberRepository: Repository<Member>
+    private readonly memberRepository: Repository<Member>,
+
+    @InjectRepository(LeadershipPosition)
+    private readonly leadershipRepository: Repository<LeadershipPosition>
   ) {}
 
   async findAll(
@@ -103,6 +108,7 @@ export class UnitService {
         throw new NotFoundException(
           `Member with ID ${unitData.unitHeadId} not found`
         );
+
       unit.unitHead = unitHead;
     }
 
@@ -119,21 +125,21 @@ export class UnitService {
     }
 
     if (unitUpdateData.unitHeadId) {
-      let unitCaptain = await this.memberRepository.findOne({
+      let memberExists = await this.memberRepository.findOne({
         where: { id: unitUpdateData.unitHeadId },
       });
-      if (!unitCaptain)
+      if (!memberExists)
         throw new NotFoundException(
           `Member with ID ${unitUpdateData.unitHeadId} not found`
         );
-      if (unitCaptain.unit?.id !== unitId && unitCaptain.unit)
+      if (memberExists.unit?.id !== unitId && memberExists.unit)
         throw new NotAcceptableException(
-          `Member with ID ${unitUpdateData.unitHeadId} can't be assigned this unit's head, update member's details first`
+          "This member already belongs to another unit"
         );
-      if (!unitCaptain.unit) {
-        this.memberRepository.update(unitCaptain.id, { unit: unitExists });
+      if (!memberExists.unit) {
+        this.memberRepository.update(memberExists.id, { unit: unitExists });
       }
-      unitExists.unitHead = unitCaptain;
+      unitExists.unitHead = memberExists;
     }
 
     Object.keys(unitUpdateData).forEach((key) => {
@@ -143,5 +149,17 @@ export class UnitService {
     });
 
     return this.unitRepository.save(unitExists);
+  }
+
+  async findUnitMembers(unitId: number): Promise<Member[]> {
+    const allUnitMembers = this.memberRepository.find({
+      where: {
+        unit: { id: unitId },
+      },
+    });
+    if (!allUnitMembers) {
+      throw new NotFoundException("No unit members found");
+    }
+    return allUnitMembers;
   }
 }
