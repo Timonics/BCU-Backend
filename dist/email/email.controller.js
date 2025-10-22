@@ -16,7 +16,6 @@ exports.EmailController = void 0;
 const common_1 = require("@nestjs/common");
 const public_decorator_1 = require("../common/decorators/public.decorator");
 const email_service_1 = require("./email.service");
-const user_decorator_1 = require("../common/decorators/user.decorator");
 const swagger_1 = require("@nestjs/swagger");
 let EmailController = class EmailController {
     emailVerifyService;
@@ -28,8 +27,8 @@ let EmailController = class EmailController {
         await this.emailVerifyService.confirmEmail(email);
         res.redirect(`${process.env.FRONTEND_URL}/auth/email-verified`);
     }
-    async resendConfirmationLink(id) {
-        await this.emailVerifyService.resendConfirmationLink(id);
+    async resendConfirmationLink(email) {
+        await this.emailVerifyService.resendConfirmationLink(email);
         return { message: "Verification email resent" };
     }
 };
@@ -59,9 +58,13 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], EmailController.prototype, "confirm", null);
 __decorate([
-    (0, common_1.Get)("resend"),
-    (0, swagger_1.ApiBearerAuth)("access-token"),
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Post)("resend"),
     (0, swagger_1.ApiOperation)({ summary: "Resend verification email" }),
+    (0, swagger_1.ApiBody)({
+        type: String,
+        description: "Email address",
+    }),
     (0, swagger_1.ApiResponse)({
         status: 200,
         description: "Verification email resent successfully",
@@ -71,11 +74,10 @@ __decorate([
     }),
     (0, swagger_1.ApiResponse)({
         status: 401,
-        description: "Unauthorized",
+        description: "Email not sent",
     }),
-    __param(0, (0, user_decorator_1.GetUser)("id")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], EmailController.prototype, "resendConfirmationLink", null);
 exports.EmailController = EmailController = __decorate([

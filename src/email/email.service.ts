@@ -59,8 +59,8 @@ export class EmailService {
     }
   }
 
-  async resendConfirmationLink(userId: number) {
-    const admin = await this.adminService.findById(userId);
+  async resendConfirmationLink(email: string) {
+    const admin = await this.adminService.findAdminByEmail(email);
     if (admin?.isVerified) {
       throw new BadRequestException("Email already confirmed");
     }

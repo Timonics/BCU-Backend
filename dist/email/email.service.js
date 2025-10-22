@@ -66,8 +66,8 @@ let EmailService = class EmailService {
             throw new common_1.BadRequestException("Bad confirmation token");
         }
     }
-    async resendConfirmationLink(userId) {
-        const admin = await this.adminService.findById(userId);
+    async resendConfirmationLink(email) {
+        const admin = await this.adminService.findAdminByEmail(email);
         if (admin?.isVerified) {
             throw new common_1.BadRequestException("Email already confirmed");
         }

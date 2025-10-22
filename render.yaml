@@ -1,7 +1,7 @@
 services:
   - type: web
     name: BCU-Backend
-    serviceId: srv-d1nuu9er433s738moo50  # <-- replace with actual ID
+    serviceId: srv-d1nuu9er433s738moo50
     env: node
     branch: master
     plan: free

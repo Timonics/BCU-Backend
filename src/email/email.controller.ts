@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Res } from "@nestjs/common";
+import { Controller, Get, Post, Query, Res } from "@nestjs/common";
 import { Public } from "src/common/decorators/public.decorator";
 import { EmailService } from "./email.service";
 import { GetUser } from "src/common/decorators/user.decorator";
@@ -7,7 +7,7 @@ import {
   ApiOperation,
   ApiQuery,
   ApiResponse,
-  ApiBearerAuth,
+  ApiBody,
 } from "@nestjs/swagger";
 import { Response } from "express";
 
@@ -40,9 +40,13 @@ export class EmailController {
     res.redirect(`${process.env.FRONTEND_URL}/auth/email-verified`);
   }
 
-  @Get("resend")
-  @ApiBearerAuth("access-token")
+  @Public()
+  @Post("resend")
   @ApiOperation({ summary: "Resend verification email" })
+  @ApiBody({
+    type: String,
+    description: "Email address",
+  })
   @ApiResponse({
     status: 200,
     description: "Verification email resent successfully",
@@ -52,10 +56,10 @@ export class EmailController {
   })
   @ApiResponse({
     status: 401,
-    description: "Unauthorized",
+    description: "Email not sent",
   })
-  async resendConfirmationLink(@GetUser("id") id: number) {
-    await this.emailVerifyService.resendConfirmationLink(id);
+  async resendConfirmationLink(email: string) {
+    await this.emailVerifyService.resendConfirmationLink(email);
     return { message: "Verification email resent" };
   }
 }

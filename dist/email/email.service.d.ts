@@ -9,5 +9,5 @@ export declare class EmailService {
     sendVerificationLink(email: string): Promise<SentMessageInfo>;
     confirmEmail(email: string): Promise<void>;
     decodeConfirmationToken(token: string): Promise<any>;
-    resendConfirmationLink(userId: number): Promise<void>;
+    resendConfirmationLink(email: string): Promise<void>;
 }
