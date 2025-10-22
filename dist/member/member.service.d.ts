@@ -6,15 +6,13 @@ import { UnitService } from "src/unit/unit.service";
 import { UpdateMemberDto } from "./dto/update_member.dto";
 import { MemberMetaData } from "./dto/member_metadata.dto";
 import { LeadershipService } from "src/leadership/leadership.service";
-import { Unit } from "src/entity/unit.entity";
 export declare class MemberService {
     private readonly memberRepository;
     private readonly bandservice;
-    private readonly unitRepository;
     private readonly unitservice;
     private readonly leadershipService;
     private readonly logger;
-    constructor(memberRepository: Repository<Member>, bandservice: BandService, unitRepository: Repository<Unit>, unitservice: UnitService, leadershipService: LeadershipService);
+    constructor(memberRepository: Repository<Member>, bandservice: BandService, unitservice: UnitService, leadershipService: LeadershipService);
     findAll(page?: number, limit?: number, sortBy?: string, sortOrder?: "ASC" | "DESC"): Promise<{
         members: Member[];
         meta: {

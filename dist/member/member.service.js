@@ -26,14 +26,12 @@ const unit_entity_1 = require("../entity/unit.entity");
 let MemberService = MemberService_1 = class MemberService {
     memberRepository;
     bandservice;
-    unitRepository;
     unitservice;
     leadershipService;
     logger = new common_1.Logger(MemberService_1.name);
-    constructor(memberRepository, bandservice, unitRepository, unitservice, leadershipService) {
+    constructor(memberRepository, bandservice, unitservice, leadershipService) {
         this.memberRepository = memberRepository;
         this.bandservice = bandservice;
-        this.unitRepository = unitRepository;
         this.unitservice = unitservice;
         this.leadershipService = leadershipService;
     }
@@ -256,10 +254,8 @@ exports.MemberService = MemberService;
 exports.MemberService = MemberService = MemberService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(member_entity_1.Member)),
-    __param(2, (0, typeorm_1.InjectRepository)(unit_entity_1.Unit)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         band_service_1.BandService,
-        typeorm_2.Repository,
         unit_service_1.UnitService,
         leadership_service_1.LeadershipService])
 ], MemberService);

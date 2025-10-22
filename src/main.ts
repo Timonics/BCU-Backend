@@ -13,7 +13,13 @@ async function bootstrap() {
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle("BCU Church Management API")
-    .setDescription("APIs for C&S Youth Fellowship members management")
+    .setDescription(
+      `${
+        process.env.NODE_ENV === "production"
+          ? "Production Server"
+          : "Development Server"
+      } APIs for C&S Youth Fellowship Band Coordinating Unit`
+    )
     .setVersion("1.0")
     .addBearerAuth(
       {
@@ -30,13 +36,6 @@ async function bootstrap() {
     origin: ["http://localhost:5173", "https://bcu-gules.vercel.app"],
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
     credentials: true,
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "Accept",
-      "X-Requested-With",
-      "Access-Control-Allow-Origin",
-    ],
   });
 
   app.useGlobalPipes(

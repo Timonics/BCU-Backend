@@ -25,8 +25,8 @@ export class MemberService {
     private readonly memberRepository: Repository<Member>,
     private readonly bandservice: BandService,
 
-    @InjectRepository(Unit)
-    private readonly unitRepository: Repository<Unit>,
+    // @InjectRepository(Unit)
+    // private readonly unitRepository: Repository<Unit>,
 
     private readonly unitservice: UnitService,
     private readonly leadershipService: LeadershipService
