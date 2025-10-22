@@ -6,9 +6,8 @@ const dotenv_1 = require("dotenv");
 const isProduction = process.env.NODE_ENV === "production";
 exports.typeOrmConfig = {
     type: "postgres",
-    url: isProduction ? process.env.DB_URL : "",
     host: isProduction
-        ? (process.env.DB_HOST ?? "aws-0-us-east-2.pooler.supabase.com")
+        ? (process.env.DB_HOST ?? "aws-1-eu-north-1.pooler.supabase.com")
         : "localhost",
     port: parseInt(process.env.DB_PORT || "5432"),
     username: process.env.DB_USERNAME || "postgres",
