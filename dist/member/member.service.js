@@ -37,7 +37,7 @@ let MemberService = MemberService_1 = class MemberService {
         this.unitservice = unitservice;
         this.leadershipService = leadershipService;
     }
-    async findAll(page = 1, limit = 10, sortBy = "1d", sortOrder = "ASC") {
+    async findAll(page = 1, limit = 10, sortBy = "id", sortOrder = "ASC") {
         const queryBuilder = this.memberRepository
             .createQueryBuilder("member")
             .leftJoinAndSelect("member.band", "band")

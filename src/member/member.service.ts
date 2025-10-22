@@ -35,7 +35,7 @@ export class MemberService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-    sortBy: string = "1d",
+    sortBy: string = "id",
     sortOrder: "ASC" | "DESC" = "ASC"
   ): Promise<
     | {

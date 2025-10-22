@@ -28,7 +28,7 @@ let AuthService = class AuthService {
         this.emailVerifyService = emailVerifyService;
     }
     async validateUser(email, password) {
-        const validatedAdmin = await this.adminService.findAdminByEmail(email);
+        const validatedAdmin = await this.findByEmail(email);
         if (!validatedAdmin)
             return undefined;
         const isPasswordValid = (0, bcrypt_1.compareSync)(password, validatedAdmin.password);
@@ -47,7 +47,7 @@ let AuthService = class AuthService {
         return { access_token: this.jwtService.sign(payload) };
     }
     async register(adminData) {
-        const adminExists = await this.adminService.findAdminByEmail(adminData.email);
+        const adminExists = await this.findByEmail(adminData.email);
         if (adminExists) {
             throw new Error("User already exists");
         }

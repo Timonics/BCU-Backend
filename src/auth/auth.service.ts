@@ -20,7 +20,7 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string) {
-    const validatedAdmin = await this.adminService.findAdminByEmail(email);
+    const validatedAdmin = await this.findByEmail(email);
     if (!validatedAdmin) return undefined;
 
     const isPasswordValid = compareSync(password, validatedAdmin.password);
@@ -44,7 +44,7 @@ export class AuthService {
   }
 
   async register(adminData: Partial<Admin>) {
-    const adminExists = await this.adminService.findAdminByEmail(
+    const adminExists = await this.findByEmail(
       adminData.email!
     );
     if (adminExists) {
