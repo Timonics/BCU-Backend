@@ -8,39 +8,61 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var EmailService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmailService = void 0;
-const mailer_1 = require("@nestjs-modules/mailer");
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const admin_service_1 = require("../admin/admin.service");
-const dotenv = require("dotenv");
-dotenv.config();
-let EmailService = class EmailService {
+const config_1 = require("@nestjs/config");
+const resend_1 = require("resend");
+const path = require("path");
+const fs = require("fs-extra");
+const handlebars = require("handlebars");
+let EmailService = EmailService_1 = class EmailService {
     jwtService;
-    mailerService;
     adminService;
-    constructor(jwtService, mailerService, adminService) {
+    configService;
+    logger = new common_1.Logger(EmailService_1.name);
+    resend;
+    constructor(jwtService, adminService, configService) {
         this.jwtService = jwtService;
-        this.mailerService = mailerService;
         this.adminService = adminService;
+        this.configService = configService;
+        this.resend = new resend_1.Resend(this.configService.get("RESEND_API_KEY"));
     }
-    sendVerificationLink(email) {
+    async compileTemplate(templateName, context) {
+        const templatePath = path.join(__dirname, "templates", `${templateName}.hbs`);
+        const templateContent = await fs.readFile(templatePath, "utf-8");
+        const template = handlebars.compile(templateContent);
+        return template(context);
+    }
+    async sendVerificationLink(email) {
         const payload = { email };
         const token = this.jwtService.sign(payload, {
-            secret: process.env.JWT_VERIFICATION_TOKEN_SECRET,
-            expiresIn: `${process.env.JWT_VERIFICATION_TOKEN_EXPIRATION_TIME}s`,
+            secret: this.configService.get("JWT_VERIFICATION_TOKEN_SECRET"),
+            expiresIn: `${this.configService.get("JWT_VERIFICATION_TOKEN_EXPIRATION_TIME")}s`,
         });
-        const url = `${process.env.EMAIL_CONFIRMATION_URL}?token=${token}`;
-        return this.mailerService.sendMail({
-            to: email,
-            subject: "BCU Email Verification",
-            template: "email-confirmation",
-            context: {
-                url,
-                email,
-            },
+        const url = `${this.configService.get("EMAIL_CONFIRMATION_URL")}?token=${token}`;
+        const html = await this.compileTemplate("email-confirmation", {
+            url,
+            email,
         });
+        const from = this.configService.get("RESEND_FROM_EMAIL") || "BCU <onboarding@resend.dev>";
+        try {
+            const data = await this.resend.emails.send({
+                from,
+                to: email,
+                subject: "BCU Email Verification",
+                html,
+            });
+            this.logger.log("Verification email sent");
+            return data;
+        }
+        catch (error) {
+            this.logger.error(error);
+            throw new common_1.BadRequestException("Error sending verification email");
+        }
     }
     async confirmEmail(email) {
         const userExists = await this.adminService.findAdminByEmail(email);
@@ -52,7 +74,7 @@ let EmailService = class EmailService {
     async decodeConfirmationToken(token) {
         try {
             const payload = await this.jwtService.verify(token, {
-                secret: process.env.JWT_VERIFICATION_TOKEN_SECRET,
+                secret: this.configService.get("JWT_VERIFICATION_TOKEN_SECRET"),
             });
             if (typeof payload === "object" && "email" in payload) {
                 return payload.email;
@@ -71,14 +93,15 @@ let EmailService = class EmailService {
         if (admin?.isVerified) {
             throw new common_1.BadRequestException("Email already confirmed");
         }
+        this.logger.log(`Resending email to ${admin.email}`);
         await this.sendVerificationLink(admin.email);
     }
 };
 exports.EmailService = EmailService;
-exports.EmailService = EmailService = __decorate([
+exports.EmailService = EmailService = EmailService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [jwt_1.JwtService,
-        mailer_1.MailerService,
-        admin_service_1.AdminService])
+        admin_service_1.AdminService,
+        config_1.ConfigService])
 ], EmailService);
 //# sourceMappingURL=email.service.js.map

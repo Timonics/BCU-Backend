@@ -1,18 +1,25 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { typeOrmConfig } from './db/db.config';
-import { MemberModule } from './member/member.module';
-import { APP_GUARD } from '@nestjs/core';
-import { JwtGuard } from './auth/guard/auth.guard';
-import { AuthModule } from './auth/auth.module';
-import { AdminModule } from './admin/admin.module';
-import { BandModule } from './band/band.module';
-import { UnitModule } from './unit/unit.module';
-import { EmailModule } from './email/email.module';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { typeOrmConfig } from "./db/db.config";
+import { MemberModule } from "./member/member.module";
+import { APP_GUARD } from "@nestjs/core";
+import { JwtGuard } from "./auth/guard/auth.guard";
+import { AuthModule } from "./auth/auth.module";
+import { AdminModule } from "./admin/admin.module";
+import { BandModule } from "./band/band.module";
+import { UnitModule } from "./unit/unit.module";
+import { EmailModule } from "./email/email.module";
+import { EventEmitterModule } from "@nestjs/event-emitter";
+import { ConfigModule } from "@nestjs/config";
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(typeOrmConfig),
+    TypeOrmModule.forRootAsync(typeOrmConfig),
+    EventEmitterModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ".env",
+    }),
     AdminModule,
     MemberModule,
     AuthModule,

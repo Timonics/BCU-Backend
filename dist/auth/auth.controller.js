@@ -19,10 +19,13 @@ const auth_service_1 = require("./auth.service");
 const login_dto_1 = require("./dto/login.dto");
 const register_dto_1 = require("./dto/register.dto");
 const swagger_1 = require("@nestjs/swagger");
+const email_service_1 = require("../email/email.service");
 let AuthController = class AuthController {
     authService;
-    constructor(authService) {
+    emailVerifyService;
+    constructor(authService, emailVerifyService) {
         this.authService = authService;
+        this.emailVerifyService = emailVerifyService;
     }
     async login(loginData) {
         const userExists = await this.authService.findByEmail(loginData.email);
@@ -34,9 +37,7 @@ let AuthController = class AuthController {
             throw new common_1.UnauthorizedException("Invalid credentials");
         }
         const token = await this.authService.login({
-            id: loggedUser.id,
             email: loggedUser.email,
-            isVerified: loggedUser.isVerified,
         });
         const { password, ...userDetails } = userExists;
         return {
@@ -46,6 +47,15 @@ let AuthController = class AuthController {
     }
     async register(signupData) {
         return this.authService.register(signupData);
+    }
+    async confirm(token, res) {
+        const email = await this.emailVerifyService.decodeConfirmationToken(token);
+        await this.emailVerifyService.confirmEmail(email);
+        res.redirect(`${process.env.FRONTEND_URL}/auth/email-verified`);
+    }
+    async resendConfirmationLink(email) {
+        await this.emailVerifyService.resendConfirmationLink(email);
+        return { message: "Verification email resent" };
     }
 };
 exports.AuthController = AuthController;
@@ -111,10 +121,59 @@ __decorate([
     __metadata("design:paramtypes", [register_dto_1.CreateAdminDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
+__decorate([
+    (0, common_1.Get)("verify"),
+    (0, swagger_1.ApiOperation)({ summary: "Confirm email address with verification token" }),
+    (0, swagger_1.ApiQuery)({
+        name: "token",
+        required: true,
+        description: "Verification token sent to user email",
+        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: "Email successfully verified",
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: "Invalid or expired token",
+    }),
+    __param(0, (0, common_1.Query)("token")),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "confirm", null);
+__decorate([
+    (0, common_1.Get)("resend"),
+    (0, swagger_1.ApiOperation)({ summary: "Resend verification email" }),
+    (0, swagger_1.ApiQuery)({
+        name: "email",
+        required: true,
+        description: "Email to resend verification link",
+        example: "olubiyioderinde7@gmail.com",
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: "Verification email resent successfully",
+        schema: {
+            example: { message: "Verification email resent" },
+        },
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 401,
+        description: "Email not sent",
+    }),
+    __param(0, (0, common_1.Query)("email")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "resendConfirmationLink", null);
 exports.AuthController = AuthController = __decorate([
     (0, public_decorator_1.Public)(),
     (0, swagger_1.ApiTags)("Authentication"),
     (0, common_1.Controller)("auth"),
-    __metadata("design:paramtypes", [auth_service_1.AuthService])
+    __metadata("design:paramtypes", [auth_service_1.AuthService,
+        email_service_1.EmailService])
 ], AuthController);
 //# sourceMappingURL=auth.controller.js.map

@@ -1,37 +1,70 @@
-import { MailerService } from "@nestjs-modules/mailer";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { AdminService } from "src/admin/admin.service";
-import * as dotenv from "dotenv";
-
-dotenv.config();
+import { ConfigService } from "@nestjs/config";
+import { Resend } from "resend";
+import * as path from "path";
+import * as fs from "fs-extra";
+import * as handlebars from "handlebars";
 
 @Injectable()
 export class EmailService {
+  private readonly logger = new Logger(EmailService.name);
+  private resend: Resend;
+
   constructor(
     private readonly jwtService: JwtService,
-    private readonly mailerService: MailerService,
-    private readonly adminService: AdminService
-  ) {}
+    private readonly adminService: AdminService,
+    private readonly configService: ConfigService
+  ) {
+    this.resend = new Resend(this.configService.get("RESEND_API_KEY"));
+  }
 
-  sendVerificationLink(email: string) {
+  private async compileTemplate(
+    templateName: string,
+    context: Record<string, any>
+  ): Promise<string> {
+    const templatePath = path.join(
+      __dirname,
+      "templates",
+      `${templateName}.hbs`
+    );
+    const templateContent = await fs.readFile(templatePath, "utf-8");
+    const template = handlebars.compile(templateContent);
+    return template(context);
+  }
+
+  async sendVerificationLink(email: string) {
     const payload = { email };
     const token = this.jwtService.sign(payload, {
-      secret: process.env.JWT_VERIFICATION_TOKEN_SECRET,
-      expiresIn: `${process.env.JWT_VERIFICATION_TOKEN_EXPIRATION_TIME}s`,
+      secret: this.configService.get<string>("JWT_VERIFICATION_TOKEN_SECRET"),
+      expiresIn: `${this.configService.get<string>("JWT_VERIFICATION_TOKEN_EXPIRATION_TIME")}s`,
     });
 
-    const url = `${process.env.EMAIL_CONFIRMATION_URL}?token=${token}`;
+    const url = `${this.configService.get<string>("EMAIL_CONFIRMATION_URL")}?token=${token}`;
 
-    return this.mailerService.sendMail({
-      to: email,
-      subject: "BCU Email Verification",
-      template: "email-confirmation",
-      context: {
-        url,
-        email,
-      },
+    const html = await this.compileTemplate("email-confirmation", {
+      url,
+      email,
     });
+
+    const from =
+      this.configService.get<string>("RESEND_FROM_EMAIL") || "BCU <onboarding@resend.dev>";
+
+    try {
+      const data = await this.resend.emails.send({
+        from,
+        to: email,
+        subject: "BCU Email Verification",
+        html,
+      });
+
+      this.logger.log("Verification email sent");
+      return data;
+    } catch (error) {
+      this.logger.error(error);
+      throw new BadRequestException("Error sending verification email");
+    }
   }
 
   async confirmEmail(email: string) {
@@ -45,7 +78,7 @@ export class EmailService {
   async decodeConfirmationToken(token: string) {
     try {
       const payload = await this.jwtService.verify(token, {
-        secret: process.env.JWT_VERIFICATION_TOKEN_SECRET,
+        secret: this.configService.get<string>("JWT_VERIFICATION_TOKEN_SECRET"),
       });
       if (typeof payload === "object" && "email" in payload) {
         return payload.email;
@@ -64,6 +97,7 @@ export class EmailService {
     if (admin?.isVerified) {
       throw new BadRequestException("Email already confirmed");
     }
+    this.logger.log(`Resending email to ${admin!.email}`);
     await this.sendVerificationLink(admin!.email);
   }
 }

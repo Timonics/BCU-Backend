@@ -1,23 +1,30 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import {
+  Injectable,
+  NotAcceptableException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { UserTokenPayload } from "src/types/access-token.type";
 import { compareSync, hashSync } from "bcrypt";
 import { AdminService } from "src/admin/admin.service";
 import { Admin } from "src/entity/admin.entity";
-import { EmailService } from "src/email/email.service";
-import * as dotenv from "dotenv";
-
-dotenv.config();
-
-const isProduction = process.env.NODE_ENV === "production";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { UserRegisteredEvent } from "src/events/user-registered.events";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AuthService {
+  private readonly isProduction: boolean;
+
   constructor(
-    private jwtService: JwtService,
-    private adminService: AdminService,
-    private emailVerifyService: EmailService
-  ) {}
+    private readonly jwtService: JwtService,
+    private readonly adminService: AdminService,
+    private readonly configService: ConfigService,
+    private readonly eventEmitter: EventEmitter2
+  ) {
+    this.isProduction =
+      this.configService.get<string>("NODE_ENV") === "production";
+  }
 
   async validateUser(email: string, password: string) {
     const validatedAdmin = await this.findByEmail(email);
@@ -25,7 +32,7 @@ export class AuthService {
 
     const isPasswordValid = compareSync(password, validatedAdmin.password);
 
-    if (!validatedAdmin.isVerified && isProduction) {
+    if (!validatedAdmin.isVerified && this.isProduction) {
       throw new UnauthorizedException("Please verify your email first");
     }
 
@@ -44,26 +51,26 @@ export class AuthService {
   }
 
   async register(adminData: Partial<Admin>) {
-    const adminExists = await this.findByEmail(
-      adminData.email!
-    );
+    const adminExists = await this.findByEmail(adminData.email!);
     if (adminExists) {
-      throw new Error("User already exists");
+      throw new NotAcceptableException("User already exists");
     }
     const newAdmin = await this.adminService.createAdmin({
       ...adminData,
       password: hashSync(adminData.password!, 10),
     });
 
-    isProduction &&
-      (await this.emailVerifyService.sendVerificationLink(newAdmin.email));
+    this.eventEmitter.emit(
+      "user.registered",
+      new UserRegisteredEvent(newAdmin.email)
+    );
 
     const { password, ...result } = newAdmin;
     return {
       ...result,
       message:
         "Registration successful. Please check your email for verification.",
-      access_token: this.jwtService.sign({ email: newAdmin.email }),
+      access_token: this.login({ email: newAdmin.email }),
     };
   }
 }

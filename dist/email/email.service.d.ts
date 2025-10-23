@@ -1,12 +1,15 @@
-import { MailerService } from "@nestjs-modules/mailer";
 import { JwtService } from "@nestjs/jwt";
 import { AdminService } from "src/admin/admin.service";
+import { ConfigService } from "@nestjs/config";
 export declare class EmailService {
     private readonly jwtService;
-    private readonly mailerService;
     private readonly adminService;
-    constructor(jwtService: JwtService, mailerService: MailerService, adminService: AdminService);
-    sendVerificationLink(email: string): Promise<SentMessageInfo>;
+    private readonly configService;
+    private readonly logger;
+    private resend;
+    constructor(jwtService: JwtService, adminService: AdminService, configService: ConfigService);
+    private compileTemplate;
+    sendVerificationLink(email: string): Promise<import("resend").CreateEmailResponse>;
     confirmEmail(email: string): Promise<void>;
     decodeConfirmationToken(token: string): Promise<any>;
     resendConfirmationLink(email: string): Promise<void>;

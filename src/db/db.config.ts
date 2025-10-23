@@ -1,25 +1,34 @@
-import { TypeOrmModuleOptions } from "@nestjs/typeorm";
-import { config } from "dotenv";
+import { ConfigService } from '@nestjs/config';
+import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 
-config();
+export const typeOrmConfig: TypeOrmModuleAsyncOptions = {
+  inject: [ConfigService],
+  useFactory: (configService: ConfigService) => {
+    const isProduction = configService.get<string>('NODE_ENV') === 'production';
 
-const isProduction = process.env.NODE_ENV === "production";
+    return {
+      type: 'postgres',
+      url: isProduction ? configService.get<string>('DB_URL') : undefined,
+      host: isProduction
+        ? configService.get<string>('DB_HOST') ?? 'aws-1-eu-north-1.pooler.supabase.com'
+        : 'localhost',
+      port: parseInt(configService.get<string>('DB_PORT') || '5432', 10),
+      username: configService.get<string>('DB_USERNAME') || 'postgres',
+      password: isProduction
+        ? configService.get<string>('DB_PASSWORD')
+        : 'Oladotun1',
+      database: isProduction
+        ? configService.get<string>('DB_NAME') ?? 'postgres'
+        : 'BCU',
 
-export const typeOrmConfig: TypeOrmModuleOptions = {
-  type: "postgres",
-  // url: isProduction ? process.env.DB_URL : "",
-  host: isProduction
-    ? (process.env.DB_HOST ?? "aws-1-eu-north-1.pooler.supabase.com")
-    : "localhost",
-  port: parseInt(process.env.DB_PORT || "5432"),
-  username: process.env.DB_USERNAME || "postgres",
-  password: isProduction ? process.env.DB_PASSWORD : "Oladotun1",
-  database: isProduction ? (process.env.DB_NAME ?? "postgres") : "BCU",
-  migrations: [__dirname + "/migrations/*{.ts,.js}"],
-  entities: [__dirname + "/../**/*.entity{.ts,.js}"],
-  synchronize: process.env.NODE_ENV !== "production",
-  autoLoadEntities: true,
-  poolSize: 10,
-  retryAttempts: 3,
-  retryDelay: 3000,
+      entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+      migrations: [__dirname + '/migrations/*{.ts,.js}'],
+
+      synchronize: !isProduction,
+      autoLoadEntities: true,
+      poolSize: 10,
+      retryAttempts: 3,
+      retryDelay: 3000,
+    };
+  },
 };

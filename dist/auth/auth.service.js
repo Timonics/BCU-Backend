@@ -14,25 +14,29 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const bcrypt_1 = require("bcrypt");
 const admin_service_1 = require("../admin/admin.service");
-const email_service_1 = require("../email/email.service");
-const dotenv = require("dotenv");
-dotenv.config();
-const isProduction = process.env.NODE_ENV === "production";
+const event_emitter_1 = require("@nestjs/event-emitter");
+const user_registered_events_1 = require("../events/user-registered.events");
+const config_1 = require("@nestjs/config");
 let AuthService = class AuthService {
     jwtService;
     adminService;
-    emailVerifyService;
-    constructor(jwtService, adminService, emailVerifyService) {
+    configService;
+    eventEmitter;
+    isProduction;
+    constructor(jwtService, adminService, configService, eventEmitter) {
         this.jwtService = jwtService;
         this.adminService = adminService;
-        this.emailVerifyService = emailVerifyService;
+        this.configService = configService;
+        this.eventEmitter = eventEmitter;
+        this.isProduction =
+            this.configService.get("NODE_ENV") === "production";
     }
     async validateUser(email, password) {
         const validatedAdmin = await this.findByEmail(email);
         if (!validatedAdmin)
             return undefined;
         const isPasswordValid = (0, bcrypt_1.compareSync)(password, validatedAdmin.password);
-        if (!validatedAdmin.isVerified && isProduction) {
+        if (!validatedAdmin.isVerified && this.isProduction) {
             throw new common_1.UnauthorizedException("Please verify your email first");
         }
         if (validatedAdmin && isPasswordValid) {
@@ -49,19 +53,18 @@ let AuthService = class AuthService {
     async register(adminData) {
         const adminExists = await this.findByEmail(adminData.email);
         if (adminExists) {
-            throw new Error("User already exists");
+            throw new common_1.NotAcceptableException("User already exists");
         }
         const newAdmin = await this.adminService.createAdmin({
             ...adminData,
             password: (0, bcrypt_1.hashSync)(adminData.password, 10),
         });
-        isProduction &&
-            (await this.emailVerifyService.sendVerificationLink(newAdmin.email));
+        this.eventEmitter.emit("user.registered", new user_registered_events_1.UserRegisteredEvent(newAdmin.email));
         const { password, ...result } = newAdmin;
         return {
             ...result,
             message: "Registration successful. Please check your email for verification.",
-            access_token: this.jwtService.sign({ email: newAdmin.email }),
+            access_token: this.login({ email: newAdmin.email }),
         };
     }
 };
@@ -70,6 +73,7 @@ exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [jwt_1.JwtService,
         admin_service_1.AdminService,
-        email_service_1.EmailService])
+        config_1.ConfigService,
+        event_emitter_1.EventEmitter2])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

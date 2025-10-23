@@ -20,7 +20,7 @@ export class CreateAdminDto {
 
   @ApiProperty({
     description: 'Admin email address',
-    example: 'admin@church.org',
+    example: 'olubiyioderinde7@gmail.com',
     required: true,
   })
   @IsEmail()

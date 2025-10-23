@@ -18,13 +18,20 @@ const admin_module_1 = require("./admin/admin.module");
 const band_module_1 = require("./band/band.module");
 const unit_module_1 = require("./unit/unit.module");
 const email_module_1 = require("./email/email.module");
+const event_emitter_1 = require("@nestjs/event-emitter");
+const config_1 = require("@nestjs/config");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forRoot(db_config_1.typeOrmConfig),
+            typeorm_1.TypeOrmModule.forRootAsync(db_config_1.typeOrmConfig),
+            event_emitter_1.EventEmitterModule.forRoot(),
+            config_1.ConfigModule.forRoot({
+                isGlobal: true,
+                envFilePath: ".env",
+            }),
             admin_module_1.AdminModule,
             member_module_1.MemberModule,
             auth_module_1.AuthModule,

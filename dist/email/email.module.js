@@ -8,53 +8,30 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmailModule = void 0;
 const common_1 = require("@nestjs/common");
-const email_controller_1 = require("./email.controller");
 const email_service_1 = require("./email.service");
 const jwt_1 = require("@nestjs/jwt");
-const dotenv = require("dotenv");
-const mailer_1 = require("@nestjs-modules/mailer");
 const admin_module_1 = require("../admin/admin.module");
-const handlebars_adapter_1 = require("@nestjs-modules/mailer/dist/adapters/handlebars.adapter");
-const path_1 = require("path");
-dotenv.config();
+const config_1 = require("@nestjs/config");
+const user_register_listener_1 = require("./listeners/user.register.listener");
 let EmailModule = class EmailModule {
 };
 exports.EmailModule = EmailModule;
 exports.EmailModule = EmailModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            jwt_1.JwtModule.register({
-                secret: process.env.JWT_VERIFICATION_TOKEN_SECRET,
-                signOptions: {
-                    expiresIn: `${process.env.JWT_VERIFICATION_TOKEN_EXPIRATION_TIME}s`,
-                },
-            }),
-            mailer_1.MailerModule.forRoot({
-                transport: {
-                    host: process.env.MAIL_HOST,
-                    port: parseInt(process.env.MAIL_PORT),
-                    secure: process.env.MAIL_SECURE === "true",
-                    auth: {
-                        user: process.env.MAIL_USER,
-                        pass: process.env.MAIL_PASSWORD,
+            jwt_1.JwtModule.registerAsync({
+                useFactory: (configService) => ({
+                    secret: configService.get("JWT_VERIFICATION_TOKEN_SECRET"),
+                    signOptions: {
+                        expiresIn: `${configService.get("JWT_VERIFICATION_TOKEN_EXPIRATION_TIME")}s`,
                     },
-                },
-                defaults: {
-                    from: `"No Reply" <${process.env.MAIL_FROM}>`,
-                },
-                template: {
-                    dir: (0, path_1.join)(__dirname, 'templates'),
-                    adapter: new handlebars_adapter_1.HandlebarsAdapter(),
-                    options: {
-                        strict: true,
-                    },
-                },
+                }),
+                inject: [config_1.ConfigService],
             }),
             admin_module_1.AdminModule,
         ],
-        controllers: [email_controller_1.EmailController],
-        providers: [email_service_1.EmailService],
-        exports: [email_service_1.EmailService]
+        providers: [email_service_1.EmailService, user_register_listener_1.UserRegisteredListener],
+        exports: [email_service_1.EmailService],
     })
 ], EmailModule);
 //# sourceMappingURL=email.module.js.map

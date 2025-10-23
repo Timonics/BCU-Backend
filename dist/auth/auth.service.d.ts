@@ -2,12 +2,15 @@ import { JwtService } from "@nestjs/jwt";
 import { UserTokenPayload } from "src/types/access-token.type";
 import { AdminService } from "src/admin/admin.service";
 import { Admin } from "src/entity/admin.entity";
-import { EmailService } from "src/email/email.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { ConfigService } from "@nestjs/config";
 export declare class AuthService {
-    private jwtService;
-    private adminService;
-    private emailVerifyService;
-    constructor(jwtService: JwtService, adminService: AdminService, emailVerifyService: EmailService);
+    private readonly jwtService;
+    private readonly adminService;
+    private readonly configService;
+    private readonly eventEmitter;
+    private readonly isProduction;
+    constructor(jwtService: JwtService, adminService: AdminService, configService: ConfigService, eventEmitter: EventEmitter2);
     validateUser(email: string, password: string): Promise<{
         id: number;
         firstName: string;
@@ -21,7 +24,9 @@ export declare class AuthService {
     }>;
     register(adminData: Partial<Admin>): Promise<{
         message: string;
-        access_token: string;
+        access_token: Promise<{
+            access_token: string;
+        }>;
         id: number;
         firstName: string;
         lastName: string;
